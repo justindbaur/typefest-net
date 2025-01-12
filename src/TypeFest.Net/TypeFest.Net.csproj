@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TypeFest.Net.SourceGenerator\TypeFest.Net.SourceGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\TypeFest.Net.SourceGenerator\bin\$(Configuration)\netstandard2.0\TypeFest.Net.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+</Project>
