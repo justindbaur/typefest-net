@@ -8,7 +8,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <DebugType>embedded</DebugType>
-    <Version>1.0.0-beta.1</Version>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
