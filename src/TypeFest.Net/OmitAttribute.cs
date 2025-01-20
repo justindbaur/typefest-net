@@ -5,7 +5,7 @@ public sealed class OmitAttribute<T> : Attribute
 {
     public OmitAttribute(string omitMemberOne, params string[] omitMembers)
     {
-        OmitMembers = [omitMemberOne, ..omitMembers];
+        OmitMembers = [omitMemberOne, .. omitMembers];
     }
 
     public string[] OmitMembers { get; }

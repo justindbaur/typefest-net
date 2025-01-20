@@ -74,4 +74,3 @@ namespace TypeFest.Net.SourceGenerator
         }
     }
 }
-

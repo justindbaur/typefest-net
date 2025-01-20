@@ -349,7 +349,7 @@ namespace TypeFest.Net.SourceGenerator
                 writer.WriteLine($"return new {TargetType.Name}");
                 writer.WriteLine("{");
                 writer.Indent++;
-                
+
                 foreach (var member in Members)
                 {
                     writer.WriteLine($"{member.Name} = value.{member.Name},");
