@@ -1,0 +1,17 @@
+name: Release
+
+on: 
+  workflow_dispatch: {}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+
+      - name: Pack
+        run: dotnet pack
+
+      - name: Push
+        run: dotnet nuget push */**.nupkg --api-key "${{ secrets.NUGET_TOKEN }}"

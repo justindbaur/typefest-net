@@ -1,0 +1,23 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+
+      - name: Build
+        run: dotnet build
+
+      - name: Verify format
+        run: dotnet format --verify-no-changes --no-restore
+      
+      - name: Test
+        run: dotnet test --no-build
+
