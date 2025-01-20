@@ -1,7 +1,13 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using TypeFest.Net;
 
-Console.WriteLine("Hello, World!");
+var person = new EditPerson
+{
+    Name = "John",
+    Age = 42,
+};
+
+Console.WriteLine($"Name = {person.Name}, Age = {person.Age}");
 
 
 public class Person
