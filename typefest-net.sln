@@ -13,6 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{A5BC4B49-3
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TypeFest.Net.SourceGenerator.SpecTests", "test\TypeFest.Net.SourceGenerator.SpecTests\TypeFest.Net.SourceGenerator.SpecTests.csproj", "{AA7A03F8-700E-4659-B936-9505A8DCA1AA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "example", "example", "{08894B9C-17EF-4D30-B949-AA9FAFC78A91}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "example\Example\Example.csproj", "{C73CF800-6E6D-4F21-8761-46DAC394E561}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,10 +38,15 @@ Global
 		{AA7A03F8-700E-4659-B936-9505A8DCA1AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA7A03F8-700E-4659-B936-9505A8DCA1AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA7A03F8-700E-4659-B936-9505A8DCA1AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C73CF800-6E6D-4F21-8761-46DAC394E561}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C73CF800-6E6D-4F21-8761-46DAC394E561}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C73CF800-6E6D-4F21-8761-46DAC394E561}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C73CF800-6E6D-4F21-8761-46DAC394E561}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{855580D3-B041-4191-84AC-541E2D61CC6A} = {B0788BF3-3FB4-4671-9062-A3F9EE991F39}
 		{DCF24062-5BDA-4550-AB4F-45DDF04F143E} = {B0788BF3-3FB4-4671-9062-A3F9EE991F39}
 		{AA7A03F8-700E-4659-B936-9505A8DCA1AA} = {A5BC4B49-3744-471D-9339-A12532D29D6F}
+		{C73CF800-6E6D-4F21-8761-46DAC394E561} = {08894B9C-17EF-4D30-B949-AA9FAFC78A91}
 	EndGlobalSection
 EndGlobal

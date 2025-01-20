@@ -9,4 +9,15 @@ internal static class Helpers
         var syntaxReference = attributeData.ApplicationSyntaxReference;
         return syntaxReference?.SyntaxTree.GetLocation(syntaxReference.Span);
     }
+
+    public static string Qualified(this ITypeSymbol typeSymbol)
+    {
+        var containingNamespace = typeSymbol.ContainingNamespace;
+        if (containingNamespace.IsGlobalNamespace)
+        {
+            return typeSymbol.Name;
+        }
+
+        return $"{containingNamespace.Name}.{typeSymbol.Name}";
+    }
 }
