@@ -338,7 +338,8 @@ public class PickTests : TestBase
                     };
                 }
             }
-            
-            """);
+
+            """
+        );
     }
 }
