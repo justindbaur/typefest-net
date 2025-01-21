@@ -7,9 +7,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace TypeFest.Net.SourceGenerator
 {
-
     [Generator]
-    public class TypeFestGenerator : IIncrementalGenerator
+    public sealed class TypeFestGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {

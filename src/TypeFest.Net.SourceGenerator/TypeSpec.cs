@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 
 namespace TypeFest.Net.SourceGenerator
 {
-    public abstract class TypeSpec
+    public abstract record TypeSpec
     {
         public TypeSpec(INamedTypeSymbol targetType)
         {
@@ -246,7 +246,7 @@ namespace TypeFest.Net.SourceGenerator
         }
     }
 
-    internal sealed class NonEnumTypeSpec : TypeSpec
+    internal sealed record NonEnumTypeSpec : TypeSpec
     {
         internal NonEnumTypeSpec(INamedTypeSymbol targetType, INamedTypeSymbol sourceType, ImmutableArray<IPropertySymbol> members)
             : base(targetType)
@@ -399,7 +399,7 @@ namespace TypeFest.Net.SourceGenerator
         }
     }
 
-    internal sealed class EnumTypeSpec : TypeSpec
+    internal sealed record EnumTypeSpec : TypeSpec
     {
         public EnumTypeSpec(INamedTypeSymbol targetType, INamedTypeSymbol sourceType, ImmutableArray<IFieldSymbol> fields)
             : base(targetType)
