@@ -1,4 +1,4 @@
-﻿namespace TypeFest.Net;
+namespace TypeFest.Net;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum, Inherited = false)]
 public sealed class PickAttribute<T> : Attribute
