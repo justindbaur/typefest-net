@@ -168,7 +168,6 @@ namespace TypeFest.Net.SourceGenerator
         public static (TypeSpec? Spec, ImmutableArray<Diagnostic> Diagnostics) CreateOmit(ISymbol targetSymbol, AttributeData attributeData)
         {
             // TODO: Validate more closely that it's _our_ OmitAttribute
-            
 
             if (!TryCreate(
                 targetSymbol,
