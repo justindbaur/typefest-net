@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <AssemblyName>$(MSBuildThisFileName)</AssemblyName>
+    <RootNamespace>$(MSBuildThisFileName)</RootNamespace>
+    <AnalyzerLanguage>cs</AnalyzerLanguage>
+  </PropertyGroup>
+</Project>

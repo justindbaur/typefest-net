@@ -9,6 +9,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <Import Project="TypeFest.Net.SourceGenerator.targets" />
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
