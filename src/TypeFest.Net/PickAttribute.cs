@@ -8,5 +8,5 @@ public sealed class PickAttribute<T> : Attribute
         PickMembers = [pickMemberOne, .. pickMembers];
     }
 
-    public string[] PickMembers { get; }
+    public IReadOnlyList<string> PickMembers { get; }
 }

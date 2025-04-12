@@ -27,14 +27,6 @@ public class OmitTests : TestBase
                 {
                     /// <inheritdoc cref="global::TestNamespace.Person.Id" />
                     public Guid Id { get; set; }
-
-                    public static EditPerson From(global::TestNamespace.Person value)
-                    {
-                        return new EditPerson
-                        {
-                            Id = value.Id,
-                        };
-                    }
                 }
             }
             """
@@ -68,14 +60,6 @@ public class OmitTests : TestBase
                 {
                     /// <inheritdoc cref="global::TestNamespace.Person.Id" />
                     public Guid Id { get; set; }
-
-                    public static EditPerson From(global::TestNamespace.Person value)
-                    {
-                        return new EditPerson
-                        {
-                            Id = value.Id,
-                        };
-                    }
                 }
             }
             """);
@@ -108,14 +92,6 @@ public class OmitTests : TestBase
                 {
                     /// <inheritdoc cref="global::TestNamespace.Person.Id" />
                     public Guid Id { get; set; }
-
-                    public static EditPerson From(global::TestNamespace.Person value)
-                    {
-                        return new EditPerson
-                        {
-                            Id = value.Id,
-                        };
-                    }
                 }
             }
             """);

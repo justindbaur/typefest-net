@@ -29,7 +29,7 @@ namespace TypeFest.Net.SourceGenerator
 
                 spec.Emit(writer);
 
-                context.AddSource($"{spec.TargetType.Qualified()}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+                context.AddSource($"{spec.FullName}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
             });
 
             var omitSpecsAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
@@ -49,7 +49,7 @@ namespace TypeFest.Net.SourceGenerator
 
                 spec.Emit(writer);
 
-                context.AddSource($"{spec.TargetType.Qualified()}.g.cs",
+                context.AddSource($"{spec.FullName}.g.cs",
                     SourceText.From(sb.ToString(), Encoding.UTF8));
             });
         }

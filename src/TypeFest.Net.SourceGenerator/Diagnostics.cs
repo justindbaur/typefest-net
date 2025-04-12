@@ -8,8 +8,8 @@ public static class Diagnostics
 
     public static DiagnosticDescriptor NullArgument { get; } = new DiagnosticDescriptor(
         id: "TF0001",
-        title: "null is an invalid argument.",
-        messageFormat: "",
+        title: "null is not an invalid argument.",
+        messageFormat: "null is not a valid argument.",
         category: "Usage",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true,

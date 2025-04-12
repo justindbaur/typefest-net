@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
 namespace TypeFest.Net.SourceGenerator;
@@ -8,6 +9,20 @@ internal static class Helpers
     {
         var syntaxReference = attributeData.ApplicationSyntaxReference;
         return syntaxReference?.SyntaxTree.GetLocation(syntaxReference.Span);
+    }
+
+    public static ImmutableArray<string> GetNamespaceParts(this ITypeSymbol typeSymbol)
+    {
+        var ns = typeSymbol.ContainingNamespace;
+        var namespaceParts = ImmutableArray.CreateBuilder<string>();
+
+        while (ns != null && !ns.IsGlobalNamespace)
+        {
+            namespaceParts.Add(ns.Name);
+            ns = ns.ContainingNamespace;
+        }
+
+        return namespaceParts.ToImmutableArray();
     }
 
     public static string Qualified(this ITypeSymbol typeSymbol)

@@ -8,5 +8,5 @@ public sealed class OmitAttribute<T> : Attribute
         OmitMembers = [omitMemberOne, .. omitMembers];
     }
 
-    public string[] OmitMembers { get; }
+    public IReadOnlyList<string> OmitMembers { get; }
 }
