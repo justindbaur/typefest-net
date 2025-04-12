@@ -15,7 +15,7 @@ namespace TypeFest.Net.SourceGenerator
             var pickSpecAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
                     "TypeFest.Net.PickAttribute`1",
                     predicate: static (node, _) => true,
-                    transform: static (context, _) => TypeSpec.CreatePick(context.TargetSymbol, context.Attributes[0])
+                    transform: static (context, _) => PartialTypeSpec.CreatePick(context.TargetSymbol, context.Attributes[0])
                 )
                 .WithTrackingName("Pick");
 
@@ -29,13 +29,13 @@ namespace TypeFest.Net.SourceGenerator
 
                 spec.Emit(writer);
 
-                context.AddSource($"{spec.FullName}.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+                context.AddSource($"{spec.FullName}.Pick.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
             });
 
             var omitSpecsAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
                     "TypeFest.Net.OmitAttribute`1",
                     predicate: static (node, _) => true,
-                    transform: static (context, _) => TypeSpec.CreateOmit(context.TargetSymbol, context.Attributes[0])
+                    transform: static (context, _) => PartialTypeSpec.CreateOmit(context.TargetSymbol, context.Attributes[0])
                 )
                 .WithTrackingName("Omit");
 
@@ -49,9 +49,23 @@ namespace TypeFest.Net.SourceGenerator
 
                 spec.Emit(writer);
 
-                context.AddSource($"{spec.FullName}.g.cs",
+                context.AddSource($"{spec.FullName}.Omit.g.cs",
                     SourceText.From(sb.ToString(), Encoding.UTF8));
             });
+
+            context.SyntaxProvider.ForAttributeWithMetadataName(
+                "TypeFest.Net.MapTo`1",
+                predicate: (node, _) => true,
+                transform: (context, _) => MapInfo.Create(context.TargetSymbol, context.Attributes[0], true)
+            )
+                .WithTrackingName("MapTo");
+
+            context.SyntaxProvider.ForAttributeWithMetadataName(
+                "TypeFest.Net.MapFrom`1",
+                predicate: (node, _) => true,
+                transform: (context, _) => MapInfo.Create(context.TargetSymbol, context.Attributes[0], false)
+            )
+                .WithTrackingName("MapFrom");
         }
 
         private static IncrementalValuesProvider<T> ReportDiagnostics<T>(IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<(T? Spec, ImmutableArray<Diagnostic> Diagnostics)> source)

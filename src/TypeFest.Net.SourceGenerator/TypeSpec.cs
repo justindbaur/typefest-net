@@ -57,112 +57,7 @@ namespace TypeFest.Net.SourceGenerator
         }
 
         protected abstract void EmitCore(IndentedTextWriter writer);
-    }
-
-    public record NonEnumTypeSpec2 : PartialTypeSpec
-    {
-        public required SpecKind Kind { get; init; }
-        public required IReadOnlyList<PropertySpec> Properties { get; init; }
-
-        protected override void EmitCore(IndentedTextWriter writer)
-        {
-            writer.WriteLine($"partial {ToKindString()} {Name}");
-            writer.WriteLine("{");
-            writer.Indent++;
-
-            // Add members
-            foreach (var property in Properties)
-            {
-                writer.WriteLine($"/// <inheritdoc cref=\"{SourceType}.{property.Name}\" />");
-                writer.WriteLine($"public {property.Type} {property.Name} {{ get;{GetSetString(property.SetAccess)}}}");
-            }
-
-            writer.Indent--;
-            writer.WriteLine("}");
-        }
-
-        private string GetSetString(SetAccess setAccess)
-        {
-            return setAccess switch
-            {
-                SetAccess.Set => " set; ",
-                SetAccess.Init => " init; ",
-                SetAccess.None => "",
-                _ => throw new Exception("Unreachable"),
-            };
-        }
-
-        private string ToKindString()
-        {
-            return Kind switch
-            {
-                SpecKind.Class => "class",
-                SpecKind.Record => "record",
-                SpecKind.Struct => "struct",
-                SpecKind.RecordStruct => "record struct",
-                _ => throw new Exception("Unreachable"),
-            };
-        }
-    }
-
-    public record EnumTypeSpec2 : PartialTypeSpec
-    {
-        public required IReadOnlyList<MemberSpec> Members { get; init; }
-
-        protected override void EmitCore(IndentedTextWriter writer)
-        {
-            writer.WriteLine($"partial enum {Name}");
-            writer.WriteLine("{");
-            writer.Indent++;
-
-            // Add members
-            foreach (var member in Members)
-            {
-                writer.WriteLine($"/// <inheritdoc cref=\"{SourceType}.{member.Name}\" />");
-                writer.Write($"{member.Name}");
-                if (member.Value != null)
-                {
-                    writer.Write($" = {member.Value}");
-                }
-                writer.WriteLine(",");
-            }
-
-            writer.Indent--;
-            writer.WriteLine("}");
-        }
-    }
-
-    public enum SetAccess
-    {
-        None,
-        Set,
-        Init,
-    }
-
-    public record PropertySpec
-    {
-        public required string Type { get; init; }
-        public required string Name { get; init; }
-        public required bool IsRequired { get; init; }
-        public required SetAccess SetAccess { get; init; }
-    }
-
-    public record MemberSpec
-    {
-        public required string Name { get; init; }
-        public required string? Value { get; init; }
-    }
-
-    public abstract record TypeSpec
-    {
-        public TypeSpec(INamedTypeSymbol targetType)
-        {
-            TargetType = targetType;
-        }
-
-        public INamedTypeSymbol TargetType { get; }
-        public abstract void Emit(IndentedTextWriter writer);
-
+        
         private static bool TryCreate(
             ISymbol targetSymbol,
             AttributeData attributeData,
@@ -333,7 +228,7 @@ namespace TypeFest.Net.SourceGenerator
                     .ToImmutableArray();
 
                 return (
-                    new NonEnumTypeSpec2
+                    new NonEnumTypeSpec
                     {
                         SourceType = sourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                         Kind = targetType.IsRecord
@@ -373,7 +268,7 @@ namespace TypeFest.Net.SourceGenerator
                     .ToImmutableArray();
 
                 return (
-                    new EnumTypeSpec2
+                    new EnumTypeSpec
                     {
                         SourceType = sourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                         Name = targetType.ToDisplayString(NullableFlowState.None, SymbolDisplayFormat.MinimallyQualifiedFormat),
@@ -419,7 +314,7 @@ namespace TypeFest.Net.SourceGenerator
                     .ToImmutableArray();
 
                 return (
-                    new NonEnumTypeSpec2
+                    new NonEnumTypeSpec
                     {
                         SourceType = sourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                         Kind = targetType.IsRecord
@@ -459,7 +354,7 @@ namespace TypeFest.Net.SourceGenerator
                     .ToImmutableArray();
 
                 return (
-                    new EnumTypeSpec2
+                    new EnumTypeSpec
                     {
                         SourceType = sourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                         Name = targetType.ToDisplayString(NullableFlowState.None, SymbolDisplayFormat.MinimallyQualifiedFormat),
@@ -483,198 +378,98 @@ namespace TypeFest.Net.SourceGenerator
         }
     }
 
-    internal sealed record NonEnumTypeSpec : TypeSpec
+    public record NonEnumTypeSpec : PartialTypeSpec
     {
-        internal NonEnumTypeSpec(INamedTypeSymbol targetType, INamedTypeSymbol sourceType, ImmutableArray<IPropertySymbol> members)
-            : base(targetType)
+        public required SpecKind Kind { get; init; }
+        public required IReadOnlyList<PropertySpec> Properties { get; init; }
+
+        protected override void EmitCore(IndentedTextWriter writer)
         {
-            SourceType = sourceType;
-            Members = members;
-        }
-
-        public INamedTypeSymbol SourceType { get; }
-        public ImmutableArray<IPropertySymbol> Members { get; }
-
-        public override void Emit(IndentedTextWriter writer)
-        {
-            writer.WriteLine("// <auto-generated/>");
-
-            if (!TargetType.ContainingNamespace.IsGlobalNamespace)
-            {
-                writer.WriteLine($"namespace {TargetType.ContainingNamespace.ToDisplayString()}");
-                writer.WriteLine("{");
-                writer.Indent++;
-            }
-
-            var type = TargetType.IsValueType ? "struct" : "class";
-
-            writer.WriteLine($"partial {type} {TargetType.Name}");
+            writer.WriteLine($"partial {ToKindString()} {Name}");
             writer.WriteLine("{");
             writer.Indent++;
 
-            var sourceConstructors = SourceType.GetMembers()
-                .OfType<IMethodSymbol>()
-                .Where(ms => ms.MethodKind == MethodKind.Constructor);
-
-            var allSourceProperties = SourceType.GetMembers()
-                .OfType<IPropertySymbol>()
-                .Where(ps => ps.DeclaredAccessibility == Accessibility.Public)
-                .Select(ps => (ps.Name, ps.Type));
-
-            bool hasRecordLikeConstructor = false;
-
-            foreach (var sourceConstructor in sourceConstructors)
+            // Add members
+            foreach (var property in Properties)
             {
-                var parameters = sourceConstructor.Parameters
-                    .Select(p => (p.Name, p.Type));
-
-                if (allSourceProperties.SequenceEqual(parameters, NameTypeEqualityComparer.Instance))
-                {
-                    hasRecordLikeConstructor = true;
-                }
+                writer.WriteLine($"/// <inheritdoc cref=\"{SourceType}.{property.Name}\" />");
+                writer.WriteLine($"public {property.Type} {property.Name} {{ get;{GetSetString(property.SetAccess)}}}");
             }
 
-            if (hasRecordLikeConstructor)
+            writer.Indent--;
+            writer.WriteLine("}");
+        }
+
+        private string GetSetString(SetAccess setAccess)
+        {
+            return setAccess switch
             {
-                // Generate a record like constructor
-                var constructorArgs = string.Join(
-                    ", ",
-                    Members.Select(m => $"{m.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {m.Name}")
-                );
-                writer.WriteLine($"public {TargetType.Name}({constructorArgs})");
-                writer.WriteLine("{");
-                writer.Indent++;
+                SetAccess.Set => " set; ",
+                SetAccess.Init => " init; ",
+                SetAccess.None => "",
+                _ => throw new Exception("Unreachable"),
+            };
+        }
 
-                // Assign all parameters to members
-                foreach (var member in Members)
-                {
-                    writer.WriteLine($"this.{member.Name} = {member.Name};");
-                }
+        private string ToKindString()
+        {
+            return Kind switch
+            {
+                SpecKind.Class => "class",
+                SpecKind.Record => "record",
+                SpecKind.Struct => "struct",
+                SpecKind.RecordStruct => "record struct",
+                _ => throw new Exception("Unreachable"),
+            };
+        }
+    }
 
-                // Close constructor
-                writer.Indent--;
-                writer.WriteLine("}");
-                writer.WriteLineNoTabs(string.Empty);
-            }
+    public record EnumTypeSpec : PartialTypeSpec
+    {
+        public required IReadOnlyList<MemberSpec> Members { get; init; }
 
+        protected override void EmitCore(IndentedTextWriter writer)
+        {
+            writer.WriteLine($"partial enum {Name}");
+            writer.WriteLine("{");
+            writer.Indent++;
+
+            // Add members
             foreach (var member in Members)
             {
-                writer.WriteLine($"/// <inheritdoc cref=\"{SourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}.{member.Name}\" />");
-
-                var setter = member.SetMethod != null
-                    ? member.IsRequired
-                        ? "init; "
-                        : "set; "
-                    : string.Empty;
-
-                // TODO: Copy getters and setters from source
-                writer.WriteLine($"public {member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {member.Name} {{ get; {setter}}}");
-            }
-
-            writer.WriteLineNoTabs(string.Empty);
-            writer.WriteLine($"public static {TargetType.Name} From({SourceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} value)");
-            writer.WriteLine("{");
-            writer.Indent++;
-
-            // Use record like constructor if we created it.
-            if (hasRecordLikeConstructor)
-            {
-                var constructorArgs = string.Join(
-                    ", ",
-                    Members.Select(m => $"value.{m.Name}")
-                );
-                writer.WriteLine($"return new {TargetType.Name}({constructorArgs});");
-            }
-            else
-            {
-                writer.WriteLine($"return new {TargetType.Name}");
-                writer.WriteLine("{");
-                writer.Indent++;
-
-                foreach (var member in Members)
+                writer.WriteLine($"/// <inheritdoc cref=\"{SourceType}.{member.Name}\" />");
+                writer.Write($"{member.Name}");
+                if (member.Value != null)
                 {
-                    writer.WriteLine($"{member.Name} = value.{member.Name},");
+                    writer.Write($" = {member.Value}");
                 }
-
-                // Close object creation
-                writer.Indent--;
-                writer.WriteLine("};");
+                writer.WriteLine(",");
             }
 
-            // Close From method
             writer.Indent--;
             writer.WriteLine("}");
-
-            // TODO: Generate Apply method
-
-            // Close type definition
-            writer.Indent--;
-            writer.WriteLine("}");
-
-            // Close namespace
-            if (!TargetType.ContainingNamespace.IsGlobalNamespace)
-            {
-                writer.Indent--;
-                writer.Write("}");
-            }
-        }
-
-        private class NameTypeEqualityComparer : IEqualityComparer<(string Name, ITypeSymbol Type)>
-        {
-            public static NameTypeEqualityComparer Instance = new();
-
-            public bool Equals((string Name, ITypeSymbol Type) x, (string Name, ITypeSymbol Type) y)
-            {
-                return string.Equals(x.Name, y.Name, StringComparison.InvariantCultureIgnoreCase)
-                    && SymbolEqualityComparer.Default.Equals(x.Type, y.Type);
-            }
-
-            public int GetHashCode((string Name, ITypeSymbol Type) obj)
-            {
-                throw new NotImplementedException();
-            }
         }
     }
 
-    internal sealed record EnumTypeSpec : TypeSpec
+    public enum SetAccess
     {
-        public EnumTypeSpec(INamedTypeSymbol targetType, INamedTypeSymbol sourceType, ImmutableArray<IFieldSymbol> fields)
-            : base(targetType)
-        {
-            SourceType = sourceType;
-            Fields = fields;
-        }
-
-        public INamedTypeSymbol SourceType { get; }
-        public ImmutableArray<IFieldSymbol> Fields { get; }
-
-        public override void Emit(IndentedTextWriter writer)
-        {
-            writer.WriteLine("// <auto-generated/>");
-            writer.WriteLine($"namespace {TargetType.ContainingNamespace.ToDisplayString()}");
-            writer.WriteLine("{");
-            writer.Indent++;
-
-            writer.WriteLine($"partial enum {TargetType.Name}");
-            writer.WriteLine("{");
-            writer.Indent++;
-
-            var sourceFields = SourceType.GetMembers()
-                .OfType<IFieldSymbol>()
-                .ToImmutableDictionary(fs => fs.Name);
-
-            foreach (var field in Fields)
-            {
-                writer.WriteLine($"{field.Name} = {field.ConstantValue},");
-            }
-
-            // Close enum definition
-            writer.Indent--;
-            writer.WriteLine("}");
-
-            // Close namespace definition
-            writer.Indent--;
-            writer.Write("}");
-        }
+        None,
+        Set,
+        Init,
     }
+
+    public record PropertySpec
+    {
+        public required string Type { get; init; }
+        public required string Name { get; init; }
+        public required bool IsRequired { get; init; }
+        public required SetAccess SetAccess { get; init; }
+    }
+
+    public record MemberSpec
+    {
+        public required string Name { get; init; }
+        public required string? Value { get; init; }
+    }
+
 }
