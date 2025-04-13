@@ -101,7 +101,14 @@ namespace TypeFest.Net.SourceGenerator
             writer.Indent++;
 
             // Start method
-            writer.WriteLine($"public {ReturnType} {MethodName}()");
+            if (IsIntoMode)
+            {
+                writer.WriteLine($"public {ReturnType} {MethodName}()");
+            }
+            else
+            {
+                writer.WriteLine($"public static {ReturnType} {MethodName}({SourceType} value)");
+            }
             writer.WriteLine("{");
             writer.Indent++;
 
@@ -112,7 +119,14 @@ namespace TypeFest.Net.SourceGenerator
 
             foreach (var (left, right) in Members)
             {
-                writer.WriteLine($"{left} = {right},");
+                if (IsIntoMode)
+                {
+                    writer.WriteLine($"{left} = {right},");
+                }
+                else
+                {
+                    writer.WriteLine($"{left} = value.{right},");
+                }
             }
 
             // Close object creation
