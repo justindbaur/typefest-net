@@ -53,19 +53,47 @@ namespace TypeFest.Net.SourceGenerator
                     SourceText.From(sb.ToString(), Encoding.UTF8));
             });
 
-            context.SyntaxProvider.ForAttributeWithMetadataName(
-                "TypeFest.Net.MapTo`1",
+            var mapIntoSpecsAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
+                "TypeFest.Net.MapIntoAttribute`1",
                 predicate: (node, _) => true,
                 transform: (context, _) => MapInfo.Create(context.TargetSymbol, context.Attributes[0], true)
             )
-                .WithTrackingName("MapTo");
+                .WithTrackingName("MapInto");
 
-            context.SyntaxProvider.ForAttributeWithMetadataName(
-                "TypeFest.Net.MapFrom`1",
+            var mapIntoSpecs = ReportDiagnostics(context, mapIntoSpecsAndDiagnostics);
+
+            context.RegisterSourceOutput(mapIntoSpecs, (context, spec) =>
+            {
+                var sb = new StringBuilder();
+                var sw = new StringWriter(sb);
+                using var writer = new IndentedTextWriter(sw);
+
+                spec.Emit(writer);
+
+                context.AddSource($"{spec.SourceType}.MapInto.g.cs",
+                    SourceText.From(sb.ToString(), Encoding.UTF8));
+            });
+
+            var mapFromSpecsAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
+                "TypeFest.Net.MapFromAttribute`1",
                 predicate: (node, _) => true,
                 transform: (context, _) => MapInfo.Create(context.TargetSymbol, context.Attributes[0], false)
             )
                 .WithTrackingName("MapFrom");
+
+            var mapFromSpecs = ReportDiagnostics(context, mapFromSpecsAndDiagnostics);
+
+            context.RegisterSourceOutput(mapFromSpecs, (context, spec) =>
+            {
+                var sb = new StringBuilder();
+                var sw = new StringWriter(sb);
+                using var writer = new IndentedTextWriter(sw);
+
+                spec.Emit(writer);
+
+                context.AddSource($"{spec.SourceType}.MapFrom.g.cs",
+                    SourceText.From(sb.ToString(), Encoding.UTF8));
+            });
         }
 
         private static IncrementalValuesProvider<T> ReportDiagnostics<T>(IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<(T? Spec, ImmutableArray<Diagnostic> Diagnostics)> source)

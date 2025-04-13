@@ -1,7 +1,7 @@
 namespace TypeFest.Net;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
-public sealed class MapToAttribute<T> : Attribute
+public sealed class MapIntoAttribute<T> : Attribute
 {
     /// <summary>
     /// A list of members to ignore when mapping.
