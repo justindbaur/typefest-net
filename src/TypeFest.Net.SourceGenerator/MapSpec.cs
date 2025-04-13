@@ -61,7 +61,7 @@ namespace TypeFest.Net.SourceGenerator
             var sourceType = isInto
                 ? namedTargetSymbol
                 : namedTypeArgument;
-            
+
             var returnType = isInto
                 ? namedTypeArgument
                 : namedTargetSymbol;
@@ -132,7 +132,7 @@ namespace TypeFest.Net.SourceGenerator
             // Close object creation
             writer.Indent--;
             writer.WriteLine("};");
-            
+
             // Close method
             writer.Indent--;
             writer.WriteLine("}");

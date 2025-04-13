@@ -57,7 +57,7 @@ namespace TypeFest.Net.SourceGenerator
         }
 
         protected abstract void EmitCore(IndentedTextWriter writer);
-        
+
         private static bool TryCreate(
             ISymbol targetSymbol,
             AttributeData attributeData,
@@ -471,5 +471,4 @@ namespace TypeFest.Net.SourceGenerator
         public required string Name { get; init; }
         public required string? Value { get; init; }
     }
-
 }
