@@ -27,9 +27,9 @@ public class MapFromTests : TestBase
             {
                 partial class Person
                 {
-                    public Person FromOtherPerson(global::TestNamespace.OtherPerson value)
+                    public static global::TestNamespace.Person FromOtherPerson(global::TestNamespace.OtherPerson value)
                     {
-                        return new Person
+                        return new global::TestNamespace.Person
                         {
                             Name = value.Name,
                         };

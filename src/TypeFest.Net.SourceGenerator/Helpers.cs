@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 
@@ -11,10 +12,10 @@ internal static class Helpers
         return syntaxReference?.SyntaxTree.GetLocation(syntaxReference.Span);
     }
 
-    public static ImmutableArray<string> GetNamespaceParts(this ITypeSymbol typeSymbol)
+    public static ImmutableEquatableArray<string> GetNamespaceParts(this ITypeSymbol typeSymbol)
     {
         var ns = typeSymbol.ContainingNamespace;
-        var namespaceParts = ImmutableArray.CreateBuilder<string>();
+        var namespaceParts = new List<string>();
 
         while (ns != null && !ns.IsGlobalNamespace)
         {
@@ -22,7 +23,7 @@ internal static class Helpers
             ns = ns.ContainingNamespace;
         }
 
-        return namespaceParts.ToImmutableArray();
+        return namespaceParts.ToImmutableEquatableArray();
     }
 
     public static string Qualified(this ITypeSymbol typeSymbol)

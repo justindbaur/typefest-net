@@ -26,7 +26,7 @@ namespace TypeFest.Net.SourceGenerator
             }
         }
         public required string SourceType { get; init; }
-        public required ImmutableArray<string> Namespace { get; init; }
+        public required ImmutableEquatableArray<string> Namespace { get; init; }
         public required string Name { get; init; }
 
         public void Emit(IndentedTextWriter writer)
@@ -42,10 +42,10 @@ namespace TypeFest.Net.SourceGenerator
 
             EmitCore(writer);
 
-            for (int i = 0; i < Namespace.Length; i++)
+            for (int i = 0; i < Namespace.Count; i++)
             {
                 writer.Indent--;
-                if (i == Namespace.Length - 1)
+                if (i == Namespace.Count - 1)
                 {
                     writer.Write("}");
                 }
