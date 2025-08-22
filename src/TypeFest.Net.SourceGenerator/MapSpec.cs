@@ -38,7 +38,7 @@ namespace TypeFest.Net.SourceGenerator
 
         // TODO: Support customization of which properties to which
         public required ImmutableEquatableArray<string> Members { get; init; }
-        
+
         public static (MapInfo? MapInfo, ImmutableArray<Diagnostic> Diagnostics) Create(ISymbol targetSymbol, AttributeData attribute, bool isInto)
         {
             if (targetSymbol is not INamedTypeSymbol namedTargetSymbol)
