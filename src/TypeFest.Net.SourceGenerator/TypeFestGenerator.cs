@@ -70,7 +70,7 @@ namespace TypeFest.Net.SourceGenerator
 
                 spec.Emit(writer);
 
-                context.AddSource($"{spec.PartialType.Name}.MapInto.g.cs",
+                context.AddSource($"{spec.PartialType.FilenameHint}.MapInto.g.cs",
                     SourceText.From(sb.ToString(), Encoding.UTF8));
             });
 
@@ -91,7 +91,7 @@ namespace TypeFest.Net.SourceGenerator
 
                 spec.Emit(writer);
 
-                context.AddSource($"{spec.PartialType.Name}.MapFrom.g.cs",
+                context.AddSource($"{spec.PartialType.FilenameHint}.MapFrom.g.cs",
                     SourceText.From(sb.ToString(), Encoding.UTF8));
             });
         }
