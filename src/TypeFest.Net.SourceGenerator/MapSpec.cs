@@ -73,66 +73,70 @@ namespace TypeFest.Net.SourceGenerator
                 writer.Indent++;
             }
 
-            // TODO: Do type hierarchy for nested typesI
-            var basePartialType = PartialType.Hierarchy[0];
-            var kindString = basePartialType.TypeKind switch
-            {
-                TypeKind.Class => basePartialType.IsRecord ? "record" : "class",
-                TypeKind.Struct => basePartialType.IsRecord ? "record struct" : "struct",
-                _ => throw new NotImplementedException(),
-            };
-            writer.WriteLine($"partial {kindString} {basePartialType.QualifiedName}");
-            writer.WriteLine("{");
-            writer.Indent++;
 
-            // Start method
-            if (IsInto)
+            // All but the base type
+            for (var i = PartialType.Hierarchy.Count - 1; i >= 0; i--)
             {
-                writer.WriteLine($"public {GenericType.GlobalName()} Into{GenericType.MetadataName}()");
-            }
-            else
-            {
-                // TODO: Do I need to put global in front?
-                writer.WriteLine($"public static {PartialType.GlobalName()} From{GenericType.MetadataName}({GenericType.GlobalName()} value)");
-            }
-            writer.WriteLine("{");
-            writer.Indent++;
+                var type = PartialType.Hierarchy[i];
+                writer.WriteLine($"partial {type.GetKindString()} {type.QualifiedName}");
+                writer.WriteLine("{");
+                writer.Indent++;
 
-            // TODO: Do mapping
-            if (IsInto)
-            {
-                writer.WriteLine($"return new {GenericType.GlobalName()}");
-            }
-            else
-            {
-                writer.WriteLine($"return new {PartialType.GlobalName()}");
-            }
-            writer.WriteLine("{");
-            writer.Indent++;
-
-            foreach (var member in Members)
-            {
-                if (IsInto)
+                if (i == 0)
                 {
-                    writer.WriteLine($"{member} = {member},");
-                }
-                else
-                {
-                    writer.WriteLine($"{member} = value.{member},");
+                    // Start method
+                    if (IsInto)
+                    {
+                        writer.WriteLine($"public {GenericType.GlobalName()} Into{GenericType.MetadataName}()");
+                    }
+                    else
+                    {
+                        // TODO: Do I need to put global in front?
+                        writer.WriteLine($"public static {PartialType.GlobalName()} From{GenericType.MetadataName}({GenericType.GlobalName()} value)");
+                    }
+                    writer.WriteLine("{");
+                    writer.Indent++;
+
+                    // TODO: Do mapping
+                    if (IsInto)
+                    {
+                        writer.WriteLine($"return new {GenericType.GlobalName()}");
+                    }
+                    else
+                    {
+                        writer.WriteLine($"return new {PartialType.GlobalName()}");
+                    }
+                    writer.WriteLine("{");
+                    writer.Indent++;
+
+                    foreach (var member in Members)
+                    {
+                        if (IsInto)
+                        {
+                            writer.WriteLine($"{member} = {member},");
+                        }
+                        else
+                        {
+                            writer.WriteLine($"{member} = value.{member},");
+                        }
+                    }
+
+                    // Close object creation
+                    writer.Indent--;
+                    writer.WriteLine("};");
+
+                    // Close method
+                    writer.Indent--;
+                    writer.WriteLine("}");
                 }
             }
 
-            // Close object creation
-            writer.Indent--;
-            writer.WriteLine("};");
-
-            // Close method
-            writer.Indent--;
-            writer.WriteLine("}");
-
-            // Close type
-            writer.Indent--;
-            writer.WriteLine("}");
+            for (var i = 0; i < PartialType.Hierarchy.Count; i++)
+            {
+                // Close types
+                writer.Indent--;
+                writer.WriteLine("}");
+            }
 
             if (PartialType.Namespace is not "")
             {

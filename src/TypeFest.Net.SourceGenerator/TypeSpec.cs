@@ -349,19 +349,30 @@ namespace TypeFest.Net.SourceGenerator
 
         protected override void EmitCore(IndentedTextWriter writer)
         {
-            writer.WriteLine($"partial {ToKindString()} {TargetType.MetadataName}");
-            writer.WriteLine("{");
-            writer.Indent++;
-
-            // Add members
-            foreach (var property in Properties)
+            for (var i = TargetType.Hierarchy.Count - 1; i >= 0; i--)
             {
-                writer.WriteLine($"/// <inheritdoc cref=\"{SourceType.GlobalName()}.{property.Name}\" />");
-                writer.WriteLine($"public {property.Type} {property.Name} {{ get;{GetSetString(property.SetAccess)}}}");
+                var type = TargetType.Hierarchy[i];
+                writer.WriteLine($"partial {type.GetKindString()} {type.QualifiedName}");
+                writer.WriteLine("{");
+                writer.Indent++;
+
+                if (i == 0)
+                {
+                    // Add members
+                    foreach (var property in Properties)
+                    {
+                        writer.WriteLine($"/// <inheritdoc cref=\"{SourceType.GlobalName()}.{property.Name}\" />");
+                        writer.WriteLine($"public {property.Type} {property.Name} {{ get;{GetSetString(property.SetAccess)}}}");
+                    }
+                }
             }
 
-            writer.Indent--;
-            writer.WriteLine("}");
+            for (var i = 0; i < TargetType.Hierarchy.Count; i++)
+            {
+                // Close types
+                writer.Indent--;
+                writer.WriteLine("}");
+            }
         }
 
         private string GetSetString(SetAccess setAccess)
@@ -371,16 +382,6 @@ namespace TypeFest.Net.SourceGenerator
                 SetAccess.Set => " set; ",
                 SetAccess.Init => " init; ",
                 SetAccess.None => "",
-                _ => throw new Exception("Unreachable"),
-            };
-        }
-
-        private string ToKindString()
-        {
-            return TargetType.Hierarchy[0].TypeKind switch
-            {
-                TypeKind.Class => TargetType.Hierarchy[0].IsRecord ? "record" : "class",
-                TypeKind.Struct => TargetType.Hierarchy[0].IsRecord ? "record struct" : "struct",
                 _ => throw new Exception("Unreachable"),
             };
         }

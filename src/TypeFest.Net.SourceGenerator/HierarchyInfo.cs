@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -5,7 +6,18 @@ using static Microsoft.CodeAnalysis.SymbolDisplayTypeQualificationStyle;
 
 namespace TypeFest.Net.SourceGenerator;
 
-internal sealed record TypeInfo(string QualifiedName, TypeKind TypeKind, bool IsRecord);
+internal sealed record TypeInfo(string QualifiedName, TypeKind TypeKind, bool IsRecord)
+{
+    public string GetKindString()
+    {
+        return TypeKind switch
+        {
+            TypeKind.Class => IsRecord ? "record" : "class",
+            TypeKind.Struct => IsRecord ? "record struct" : "struct",
+            _ => throw new NotImplementedException("Should not be reachable."),
+        };
+    }
+}
 
 internal sealed record HierarchyInfo(string FilenameHint, string MetadataName, string Namespace, ImmutableEquatableArray<TypeInfo> Hierarchy)
 {
