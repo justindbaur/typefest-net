@@ -46,7 +46,7 @@ public abstract class TestBase
 
         foreach (var d in diagnostics)
         {
-            Debug.WriteLine($"\t{d}"); 
+            Debug.WriteLine($"\t{d}");
         }
 
         var generator = new TypeFestGenerator().AsSourceGenerator();
@@ -60,7 +60,7 @@ public abstract class TestBase
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var updatedDiagnostics);
 
         Debug.WriteLine(updatedCompilation.GetType().FullName);
-        
+
         return driver.GetRunResult();
     }
 
@@ -69,7 +69,7 @@ public abstract class TestBase
         var runResult = await RunAsync(source);
 
         Assert.Empty(runResult.Diagnostics);
-        
+
         var result = Assert.Single(runResult.Results);
 
         var generatedSource = Assert.Single(result.GeneratedSources);
