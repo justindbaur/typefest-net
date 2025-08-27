@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -39,6 +40,15 @@ public abstract class TestBase
             throw new InvalidOperationException();
         }
 
+        var diagnostics = compilation.GetDiagnostics();
+
+        Debug.WriteLine("Original diagnostics:");
+
+        foreach (var d in diagnostics)
+        {
+            Debug.WriteLine($"\t{d}"); 
+        }
+
         var generator = new TypeFestGenerator().AsSourceGenerator();
 
         GeneratorDriver driver = CSharpGeneratorDriver.Create(
@@ -47,8 +57,10 @@ public abstract class TestBase
             parseOptions: parseOptions
         );
 
-        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var diagnostics);
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var updatedDiagnostics);
 
+        Debug.WriteLine(updatedCompilation.GetType().FullName);
+        
         return driver.GetRunResult();
     }
 
@@ -56,6 +68,8 @@ public abstract class TestBase
     {
         var runResult = await RunAsync(source);
 
+        Assert.Empty(runResult.Diagnostics);
+        
         var result = Assert.Single(runResult.Results);
 
         var generatedSource = Assert.Single(result.GeneratedSources);
