@@ -49,7 +49,7 @@ namespace TypeFest.Net.SourceGenerator
             [NotNullWhen(true)] out INamedTypeSymbol? targetType,
             [NotNullWhen(true)] out INamedTypeSymbol? sourceType,
             [NotNullWhen(true)] out ImmutableHashSet<string>? members,
-            out ImmutableArray<Diagnostic>.Builder diagnostics)
+            out ImmutableArray<DiagnosticInfo>.Builder diagnostics)
         {
             if (targetSymbol is not INamedTypeSymbol namedTargetSymbol)
             {
@@ -77,17 +77,17 @@ namespace TypeFest.Net.SourceGenerator
                 throw new InvalidOperationException("Expected an array for the second argument.");
             }
 
-            var diagnosticsBuilder = ImmutableArray.CreateBuilder<Diagnostic>();
+            var diagnosticsBuilder = ImmutableArray.CreateBuilder<DiagnosticInfo>();
 
             // We do allow a struct -> class and class -> struct
             if ((namedSourceSymbol.TypeKind == TypeKind.Enum && namedTargetSymbol.TypeKind != TypeKind.Enum)
                 || (namedSourceSymbol.TypeKind != TypeKind.Enum && namedTargetSymbol.TypeKind == TypeKind.Enum))
             {
                 var location = attributeData.GetLocation();
-                diagnosticsBuilder.Add(Diagnostic.Create(
+                diagnosticsBuilder.Add(DiagnosticInfo.Create(
                     Diagnostics.InvalidTypeKind,
                     location,
-                    messageArgs: [namedTargetSymbol.TypeKind, namedSourceSymbol.TypeKind]
+                    namedTargetSymbol.TypeKind, namedSourceSymbol.TypeKind
                 ));
                 sourceType = null;
                 targetType = null;
@@ -122,10 +122,10 @@ namespace TypeFest.Net.SourceGenerator
                     // TODO: Get location more specific to this argument
                     var location = attributeData.GetLocation();
 
-                    diagnosticsBuilder.Add(Diagnostic.Create(
+                    diagnosticsBuilder.Add(DiagnosticInfo.Create(
                         Diagnostics.NullArgument,
                         location,
-                        messageArgs: "null"
+                        "null"
                     ));
                     return false;
                 }
@@ -137,10 +137,10 @@ namespace TypeFest.Net.SourceGenerator
                     // TODO: Get location more specific to this argument
                     var location = attributeData.GetLocation();
 
-                    diagnosticsBuilder.Add(Diagnostic.Create(
+                    diagnosticsBuilder.Add(DiagnosticInfo.Create(
                         Diagnostics.DuplicateArgument,
                         location,
-                        messageArgs: member
+                        member
                     ));
                     return true;
                 }
@@ -151,10 +151,10 @@ namespace TypeFest.Net.SourceGenerator
                     // TODO: Get location more specific to this argument
                     var location = attributeData.GetLocation();
 
-                    diagnosticsBuilder.Add(Diagnostic.Create(
+                    diagnosticsBuilder.Add(DiagnosticInfo.Create(
                         Diagnostics.InvalidPropertyName,
                         location,
-                        messageArgs: [member, namedSourceSymbol.Name]
+                        member, namedSourceSymbol.Name
                     ));
                     return true;
                 }
@@ -190,7 +190,7 @@ namespace TypeFest.Net.SourceGenerator
             return true;
         }
 
-        public static (PartialTypeSpec? Spec, ImmutableArray<Diagnostic> Diagnostics) CreateOmit(ISymbol targetSymbol, AttributeData attributeData)
+        public static (PartialTypeSpec? Spec, ImmutableArray<DiagnosticInfo> Diagnostics) CreateOmit(ISymbol targetSymbol, AttributeData attributeData)
         {
             // TODO: Validate more closely that it's _our_ OmitAttribute
             if (!TryCreate(
@@ -266,7 +266,7 @@ namespace TypeFest.Net.SourceGenerator
             }
         }
 
-        public static (PartialTypeSpec? Spec, ImmutableArray<Diagnostic> Diagnostics) CreatePick(ISymbol targetSymbol, AttributeData attributeData)
+        public static (PartialTypeSpec? Spec, ImmutableArray<DiagnosticInfo> Diagnostics) CreatePick(ISymbol targetSymbol, AttributeData attributeData)
         {
             // TODO: Validate more closely that it's _our_ PickAttribute
             if (!TryCreate(

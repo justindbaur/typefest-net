@@ -96,7 +96,7 @@ namespace TypeFest.Net.SourceGenerator
             });
         }
 
-        private static IncrementalValuesProvider<T> ReportDiagnostics<T>(IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<(T? Spec, ImmutableArray<Diagnostic> Diagnostics)> source)
+        private static IncrementalValuesProvider<T> ReportDiagnostics<T>(IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<(T? Spec, ImmutableArray<DiagnosticInfo> Diagnostics)> source)
         {
             var diagnostics = source
                 .Select((v, _) => v.Diagnostics)
@@ -106,7 +106,7 @@ namespace TypeFest.Net.SourceGenerator
             {
                 foreach (var diagnostic in diagnostics)
                 {
-                    context.ReportDiagnostic(diagnostic);
+                    context.ReportDiagnostic(diagnostic.ToDiagnostic());
                 }
             });
 

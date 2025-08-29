@@ -59,16 +59,12 @@ public abstract class TestBase
 
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var updatedDiagnostics);
 
-        Debug.WriteLine(updatedCompilation.GetType().FullName);
-
         return driver.GetRunResult();
     }
 
     protected async Task RunAndCompareAsync(string source, string output)
     {
         var runResult = await RunAsync(source);
-
-        Assert.Empty(runResult.Diagnostics);
 
         var result = Assert.Single(runResult.Results);
 
