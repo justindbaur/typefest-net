@@ -248,6 +248,31 @@ public class PickTests : TestBase
     }
 
     [Fact]
+    public async Task NullMemberName()
+    {
+        var result = await RunAsync("""
+            using TypeFest.Net;
+
+            namespace TestNamespace;
+
+            [Pick<Person>("Name", null)]
+            public partial class EditPerson;
+
+            public class Person
+            {
+                public Guid Id { get; set; }
+                public string Name { get; set; }
+            }
+            """
+        );
+
+        var diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal("TF0001", diagnostic.Id);
+        Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
+        Assert.Equal("null is not an invalid argument.", diagnostic.GetMessage());
+    }
+
+    [Fact]
     public async Task InvalidMemberName()
     {
         var result = await RunAsync("""
