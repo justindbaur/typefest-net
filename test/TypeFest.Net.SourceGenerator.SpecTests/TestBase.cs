@@ -8,7 +8,12 @@ namespace TypeFest.Net.SourceGenerator.SpecTests;
 
 public abstract class TestBase
 {
-    protected async Task<GeneratorDriverRunResult> RunAsync(string source)
+    protected static async Task<GeneratorDriverRunResult> RunAsync(string source)
+    {
+        return await RunCoreAsync(source, TestContext.Current.CancellationToken);
+    }
+
+    private static async Task<GeneratorDriverRunResult> RunCoreAsync(string source, CancellationToken cancellationToken)
     {
         var projectName = $"TestProject-{Guid.NewGuid()}";
 
@@ -33,14 +38,9 @@ public abstract class TestBase
             .AddDocument("Test.cs", SourceText.From(source, Encoding.UTF8))
             .Project;
 
-        var compilation = await project.GetCompilationAsync();
-
-        if (compilation is null)
-        {
-            throw new InvalidOperationException();
-        }
-
-        var diagnostics = compilation.GetDiagnostics();
+        var compilation = await project.GetCompilationAsync(cancellationToken)
+            ?? throw new InvalidOperationException();
+        var diagnostics = compilation.GetDiagnostics(cancellationToken);
 
         Debug.WriteLine("Original diagnostics:");
 
@@ -57,12 +57,19 @@ public abstract class TestBase
             parseOptions: parseOptions
         );
 
-        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var updatedDiagnostics);
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var _, out var updatedDiagnostics, cancellationToken);
+
+        Debug.WriteLine("Updated diagnostics:");
+
+        foreach (var d in updatedDiagnostics)
+        {
+            Debug.WriteLine($"\t{d}");
+        }
 
         return driver.GetRunResult();
     }
 
-    protected async Task RunAndCompareAsync(string source, string output)
+    protected static async Task RunAndCompareAsync(string source, string output)
     {
         var runResult = await RunAsync(source);
 
