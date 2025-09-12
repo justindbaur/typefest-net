@@ -247,15 +247,20 @@ public class PickTests : TestBase
         Assert.Equal("'Name' is a duplicate argument and will be ignored.", diagnostic.GetMessage());
     }
 
-    [Fact]
-    public async Task NullMemberName()
+    [Theory]
+    [InlineData("null")]
+    [InlineData("\"Name\", null")]
+    [InlineData("null, \"Name\"")]
+    [InlineData("\"Id\", \"Name\", null")]
+    public async Task NullMemberName(string pickArgs)
     {
-        var result = await RunAsync("""
+        var result = await RunAsync($$"""
+            using System;
             using TypeFest.Net;
 
             namespace TestNamespace;
 
-            [Pick<Person>("Name", null)]
+            [Pick<Person>({{pickArgs}})]
             public partial class EditPerson;
 
             public class Person
@@ -266,10 +271,9 @@ public class PickTests : TestBase
             """
         );
 
-        var diagnostic = Assert.Single(result.Diagnostics);
-        Assert.Equal("TF0001", diagnostic.Id);
+        var diagnostic = Assert.Single(result.Diagnostics, d => d.Id == "TF0001");
         Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-        Assert.Equal("null is not an invalid argument.", diagnostic.GetMessage());
+        Assert.Equal("null is not a valid argument and will be ignored.", diagnostic.GetMessage());
     }
 
     [Fact]

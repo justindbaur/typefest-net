@@ -127,7 +127,7 @@ namespace TypeFest.Net.SourceGenerator
                         location,
                         "null"
                     ));
-                    return false;
+                    return true;
                 }
 
                 var member = (string)typedConstant.Value!;
@@ -169,6 +169,24 @@ namespace TypeFest.Net.SourceGenerator
                 diagnostics = diagnosticsBuilder;
                 members = memberBuilder.ToImmutableHashSet();
                 return false;
+            }
+
+            if (paramsArg.Values.IsDefault)
+            {
+                // If paramsArg is a thing but is default that means the value is null
+                // TODO: Get location more specific to this argument
+                var location = attributeData.GetLocation();
+
+                diagnosticsBuilder.Add(DiagnosticInfo.Create(
+                    Diagnostics.NullArgument,
+                    location,
+                    "null"
+                ));
+                sourceType = namedSourceSymbol;
+                targetType = namedTargetSymbol;
+                diagnostics = diagnosticsBuilder;
+                members = memberBuilder.ToImmutableHashSet();
+                return true;
             }
 
             foreach (var paramArg in paramsArg.Values)

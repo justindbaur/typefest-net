@@ -9,9 +9,9 @@ public static class Diagnostics
     public static DiagnosticDescriptor NullArgument { get; } = new DiagnosticDescriptor(
         id: "TF0001",
         title: "null is not an invalid argument.",
-        messageFormat: "null is not a valid argument.",
+        messageFormat: "null is not a valid argument and will be ignored.",
         category: "Usage",
-        DiagnosticSeverity.Error,
+        DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: string.Format(HelpLinkUri, "TI0001"));
 
