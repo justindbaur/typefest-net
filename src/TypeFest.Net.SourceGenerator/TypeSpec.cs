@@ -380,7 +380,7 @@ namespace TypeFest.Net.SourceGenerator
                     foreach (var property in Properties)
                     {
                         writer.WriteLine($"/// <inheritdoc cref=\"{SourceType.GlobalName()}.{property.Name}\" />");
-                        writer.WriteLine($"public {property.Type} {property.Name} {{ get;{GetSetString(property.SetAccess)}}}");
+                        writer.WriteLine($"public{(property.IsRequired ? " required " : " ")}{property.Type} {property.Name} {{ get;{GetSetString(property.SetAccess)}}}");
                     }
                 }
             }
