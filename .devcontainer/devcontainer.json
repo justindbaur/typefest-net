@@ -1,4 +1,11 @@
 {
 	"name": "C# (.NET)",
-	"image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0-jammy"
+	"image": "mcr.microsoft.com/devcontainers/dotnet:1-8.0-jammy",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csdevkit"
+			]
+		}
+	}
 }
