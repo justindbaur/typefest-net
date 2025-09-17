@@ -2,7 +2,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.SourceGenerator.Utilities;
 
 internal sealed record DiagnosticInfo(
     DiagnosticDescriptor Descriptor,

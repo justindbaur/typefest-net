@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using TypeFest.Net.SourceGenerator.Utilities;
 using static Microsoft.CodeAnalysis.SymbolDisplayTypeQualificationStyle;
 
 namespace TypeFest.Net.SourceGenerator;

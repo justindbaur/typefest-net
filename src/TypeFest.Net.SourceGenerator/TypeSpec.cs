@@ -5,17 +5,10 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using TypeFest.Net.SourceGenerator.Utilities;
 
 namespace TypeFest.Net.SourceGenerator
 {
-    public enum SpecKind
-    {
-        Class,
-        Struct,
-        Record,
-        RecordStruct,
-    }
-
     internal abstract record PartialTypeSpec
     {
         public required HierarchyInfo TargetType { get; init; }
@@ -230,11 +223,18 @@ namespace TypeFest.Net.SourceGenerator
                     .Where(ps => !members.Contains(ps.Name))
                     .ToImmutableArray();
 
+                var constructors = sourceType.InstanceConstructors
+                    .Select(c => TryGetDataConstructorArgs(c, nonOmittedProperties))
+                    .Where(d => d != null)
+                    .Select(d => d!)
+                    .ToImmutableEquatableArray();
+
                 return (
                     new NonEnumTypeSpec
                     {
                         SourceType = HierarchyInfo.From(sourceType),
                         TargetType = HierarchyInfo.From(targetType),
+                        Constructors = constructors,
                         Properties = [.. nonOmittedProperties.Select(ps =>
                         {
                             return new PropertySpec
@@ -266,7 +266,7 @@ namespace TypeFest.Net.SourceGenerator
                     {
                         SourceType = HierarchyInfo.From(sourceType),
                         TargetType = HierarchyInfo.From(targetType),
-                        Members = [..nonOmittedFields.Select(fs =>
+                        Members = [.. nonOmittedFields.Select(fs =>
                         {
                             return new MemberSpec
                             {
@@ -282,6 +282,43 @@ namespace TypeFest.Net.SourceGenerator
             {
                 throw new InvalidOperationException($"TypeKind of {targetType.TypeKind} is not supported.");
             }
+        }
+
+        private static ImmutableEquatableArray<ConstructorArgumentSpec>? TryGetDataConstructorArgs(IMethodSymbol constructor, ImmutableArray<IPropertySymbol> properties)
+        {
+            if (constructor.Parameters.Length == 0)
+            {
+                return null;
+            }
+
+            var candidate = ImmutableArray.CreateBuilder<ConstructorArgumentSpec>();
+            foreach (var parameter in constructor.Parameters)
+            {
+                var prop = properties.FirstOrDefault(p => string.Equals(p.Name, parameter.Name, StringComparison.OrdinalIgnoreCase));
+
+                if (prop == null)
+                {
+                    continue;
+                }
+
+                if (SymbolEqualityComparer.Default.Equals(parameter.Type, prop.Type))
+                {
+                    candidate.Add(new ConstructorArgumentSpec
+                    {
+                        ArgumentName = parameter.Name,
+                        PropertyName = prop.Name,
+                        Type = parameter.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    });
+                    continue;
+                }
+            }
+
+            if (candidate.Count == 0)
+            {
+                return null;
+            }
+
+            return candidate.ToImmutableEquatableArray();
         }
 
         public static (PartialTypeSpec? Spec, ImmutableArray<DiagnosticInfo> Diagnostics) CreatePick(ISymbol targetSymbol, AttributeData attributeData)
@@ -306,11 +343,18 @@ namespace TypeFest.Net.SourceGenerator
                     .Where(ps => members.Contains(ps.Name))
                     .ToImmutableArray();
 
+                var constructors = sourceType.InstanceConstructors
+                    .Select(c => TryGetDataConstructorArgs(c, pickedProperties))
+                    .Where(c => c != null)
+                    .Select(c => c!)
+                    .ToImmutableEquatableArray();
+
                 return (
                     new NonEnumTypeSpec
                     {
                         SourceType = HierarchyInfo.From(sourceType),
                         TargetType = HierarchyInfo.From(targetType),
+                        Constructors = constructors,
                         Properties = [.. pickedProperties.Select(ps =>
                         {
                             return new PropertySpec
@@ -342,7 +386,7 @@ namespace TypeFest.Net.SourceGenerator
                     {
                         SourceType = HierarchyInfo.From(sourceType),
                         TargetType = HierarchyInfo.From(targetType),
-                        Members = [..pickedFields.Select(fs =>
+                        Members = [.. pickedFields.Select(fs =>
                         {
                             return new MemberSpec
                             {
@@ -363,6 +407,7 @@ namespace TypeFest.Net.SourceGenerator
 
     internal sealed record NonEnumTypeSpec : PartialTypeSpec
     {
+        public required ImmutableEquatableArray<ImmutableEquatableArray<ConstructorArgumentSpec>> Constructors { get; init; }
         public required IReadOnlyList<PropertySpec> Properties { get; init; }
 
         protected override void EmitCore(IndentedTextWriter writer)
@@ -376,6 +421,22 @@ namespace TypeFest.Net.SourceGenerator
 
                 if (i == 0)
                 {
+                    // Add constructors
+                    foreach (var constructor in Constructors)
+                    {
+                        writer.WriteLine($"public {type.QualifiedName}({string.Join(", ", constructor.Select(a => $"{a.Type} {a.ArgumentName}"))})");
+                        writer.WriteLine("{");
+                        writer.Indent++;
+                        // TODO: Assign properties
+                        foreach (var a in constructor)
+                        {
+                            writer.WriteLine($"{(a.NeedsQualification ? "this." : "")}{a.PropertyName} = {a.ArgumentName};");
+                        }
+                        writer.Indent--;
+                        writer.WriteLine("}");
+                        writer.WriteLineNoTabs("");
+                    }
+
                     // Add members
                     foreach (var property in Properties)
                     {
@@ -399,7 +460,7 @@ namespace TypeFest.Net.SourceGenerator
             {
                 SetAccess.Set => " set; ",
                 SetAccess.Init => " init; ",
-                SetAccess.None => "",
+                SetAccess.None => " ",
                 _ => throw new Exception("Unreachable"),
             };
         }
@@ -439,7 +500,7 @@ namespace TypeFest.Net.SourceGenerator
         Init,
     }
 
-    public record PropertySpec
+    internal sealed record PropertySpec
     {
         public required string Type { get; init; }
         public required string Name { get; init; }
@@ -447,7 +508,19 @@ namespace TypeFest.Net.SourceGenerator
         public required SetAccess SetAccess { get; init; }
     }
 
-    public record MemberSpec
+    internal sealed record ConstructorArgumentSpec
+    {
+        public required string ArgumentName { get; init; }
+        public required string PropertyName { get; init; }
+        public required string Type { get; init; }
+
+        public bool NeedsQualification
+        {
+            get => ArgumentName == PropertyName;
+        }
+    }
+
+    internal sealed record MemberSpec
     {
         public required string Name { get; init; }
         public required string? Value { get; init; }

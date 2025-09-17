@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.SourceGenerator.Utilities;
 
-public sealed class ImmutableEquatableArray<T> : IEquatable<ImmutableEquatableArray<T>>, IReadOnlyList<T>
+internal sealed class ImmutableEquatableArray<T> : IEquatable<ImmutableEquatableArray<T>>, IReadOnlyList<T>
     where T : IEquatable<T>
 {
     public static ImmutableEquatableArray<T> Empty { get; } = new ImmutableEquatableArray<T>([]);
@@ -75,7 +75,7 @@ public sealed class ImmutableEquatableArray<T> : IEquatable<ImmutableEquatableAr
     }
 }
 
-public static class ImmutableEquatableArray
+internal static class ImmutableEquatableArray
 {
     public static ImmutableEquatableArray<T> ToImmutableEquatableArray<T>(this IEnumerable<T> values)
         where T : IEquatable<T>

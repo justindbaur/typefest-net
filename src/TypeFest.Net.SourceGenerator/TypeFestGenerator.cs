@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using TypeFest.Net.SourceGenerator.Utilities;
 
 namespace TypeFest.Net.SourceGenerator
 {
