@@ -97,11 +97,11 @@ namespace TypeFest.Net.SourceGenerator
             });
         }
 
-        private static IncrementalValuesProvider<T> ReportDiagnostics<T>(IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<(T? Spec, ImmutableArray<DiagnosticInfo> Diagnostics)> source)
+        private static IncrementalValuesProvider<T> ReportDiagnostics<T>(IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<Result<T?>> source)
         {
             var diagnostics = source
-                .Select((v, _) => v.Diagnostics)
-                .Where(d => d.Length > 0);
+                .Select((v, _) => v.Errors)
+                .Where(d => d.Count > 0);
 
             context.RegisterSourceOutput(diagnostics, (context, diagnostics) =>
             {
@@ -112,7 +112,7 @@ namespace TypeFest.Net.SourceGenerator
             });
 
             return source
-                .Select((v, _) => v.Spec)
+                .Select((v, _) => v.Item)
                 .Where(i => i != null)!;
         }
     }

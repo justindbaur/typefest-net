@@ -201,7 +201,7 @@ namespace TypeFest.Net.SourceGenerator
             return true;
         }
 
-        public static (PartialTypeSpec? Spec, ImmutableArray<DiagnosticInfo> Diagnostics) CreateOmit(ISymbol targetSymbol, AttributeData attributeData)
+        public static Result<PartialTypeSpec?> CreateOmit(ISymbol targetSymbol, AttributeData attributeData)
         {
             // TODO: Validate more closely that it's _our_ OmitAttribute
             if (!TryCreate(
@@ -212,7 +212,7 @@ namespace TypeFest.Net.SourceGenerator
                 out var members,
                 out var diagnostics))
             {
-                return (null, diagnostics.ToImmutableArray());
+                return new Result<PartialTypeSpec?>(null, diagnostics.ToImmutableArray().ToImmutableEquatableArray());
             }
 
             if (targetType.TypeKind is TypeKind.Class or TypeKind.Struct)
@@ -229,7 +229,7 @@ namespace TypeFest.Net.SourceGenerator
                     .Select(d => d!)
                     .ToImmutableEquatableArray();
 
-                return (
+                return new Result<PartialTypeSpec?>(
                     new NonEnumTypeSpec
                     {
                         SourceType = HierarchyInfo.From(sourceType),
@@ -251,7 +251,7 @@ namespace TypeFest.Net.SourceGenerator
                             };
                         })],
                     },
-                    diagnostics.ToImmutableArray()
+                    diagnostics.ToImmutableArray().ToImmutableEquatableArray()
                 );
             }
             else if (targetType.TypeKind == TypeKind.Enum)
@@ -261,7 +261,7 @@ namespace TypeFest.Net.SourceGenerator
                     .Where(fs => !members.Contains(fs.Name))
                     .ToImmutableArray();
 
-                return (
+                return new Result<PartialTypeSpec?>(
                     new EnumTypeSpec
                     {
                         SourceType = HierarchyInfo.From(sourceType),
@@ -275,7 +275,7 @@ namespace TypeFest.Net.SourceGenerator
                             };
                         })],
                     },
-                    diagnostics.ToImmutableArray()
+                    diagnostics.ToImmutableArray().ToImmutableEquatableArray()
                 );
             }
             else
@@ -321,7 +321,7 @@ namespace TypeFest.Net.SourceGenerator
             return candidate.ToImmutableEquatableArray();
         }
 
-        public static (PartialTypeSpec? Spec, ImmutableArray<DiagnosticInfo> Diagnostics) CreatePick(ISymbol targetSymbol, AttributeData attributeData)
+        public static Result<PartialTypeSpec?> CreatePick(ISymbol targetSymbol, AttributeData attributeData)
         {
             // TODO: Validate more closely that it's _our_ PickAttribute
             if (!TryCreate(
@@ -332,7 +332,7 @@ namespace TypeFest.Net.SourceGenerator
                 out var members,
                 out var diagnostics))
             {
-                return (null, diagnostics.ToImmutableArray());
+                return new Result<PartialTypeSpec?>(null, diagnostics.ToImmutableArray().ToImmutableEquatableArray());
             }
 
             if (targetType.TypeKind is TypeKind.Class or TypeKind.Struct)
@@ -349,7 +349,7 @@ namespace TypeFest.Net.SourceGenerator
                     .Select(c => c!)
                     .ToImmutableEquatableArray();
 
-                return (
+                return new Result<PartialTypeSpec?>(
                     new NonEnumTypeSpec
                     {
                         SourceType = HierarchyInfo.From(sourceType),
@@ -371,7 +371,7 @@ namespace TypeFest.Net.SourceGenerator
                             };
                         })],
                     },
-                    diagnostics.ToImmutableArray()
+                    diagnostics.ToImmutableArray().ToImmutableEquatableArray()
                 );
             }
             else if (targetType.TypeKind == TypeKind.Enum)
@@ -381,7 +381,7 @@ namespace TypeFest.Net.SourceGenerator
                     .Where(fs => members.Contains(fs.Name))
                     .ToImmutableArray();
 
-                return (
+                return new Result<PartialTypeSpec?>(
                     new EnumTypeSpec
                     {
                         SourceType = HierarchyInfo.From(sourceType),
@@ -395,7 +395,7 @@ namespace TypeFest.Net.SourceGenerator
                             };
                         })],
                     },
-                    diagnostics.ToImmutableArray()
+                    diagnostics.ToImmutableArray().ToImmutableEquatableArray()
                 );
             }
             else

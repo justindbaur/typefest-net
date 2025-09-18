@@ -18,7 +18,7 @@ namespace TypeFest.Net.SourceGenerator
         // TODO: Support customization of which properties to which
         public required ImmutableEquatableArray<string> Members { get; init; }
 
-        public static (MapInfo? MapInfo, ImmutableArray<DiagnosticInfo> Diagnostics) Create(ISymbol targetSymbol, AttributeData attribute, bool isInto)
+        public static Result<MapInfo?> Create(ISymbol targetSymbol, AttributeData attribute, bool isInto)
         {
             if (targetSymbol is not INamedTypeSymbol namedTargetSymbol)
             {
@@ -52,7 +52,7 @@ namespace TypeFest.Net.SourceGenerator
                     .Where(ps => !ignoredNames.Contains(ps.Name));
             }
 
-            return (
+            return new Result<MapInfo?>(
                 new MapInfo
                 {
                     IsInto = isInto,
@@ -60,7 +60,7 @@ namespace TypeFest.Net.SourceGenerator
                     GenericType = HierarchyInfo.From(namedTypeArgument),
                     Members = props.Select(ps => ps.Name).ToImmutableEquatableArray(),
                 },
-                ImmutableArray<DiagnosticInfo>.Empty
+                ImmutableEquatableArray<DiagnosticInfo>.Empty
             );
         }
 
