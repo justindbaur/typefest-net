@@ -24,7 +24,7 @@ public class Todo
 public partial class TodoPreview;
 ```
 
-Under the hood, a type with the `Title` and `Completed` just like they are on `Todo`. It will also generate a method with the following signature: `public static TodoPreview From(Todo value)` for you so you can easily map from `Todo` to `TodoPreview`. 
+Under the hood, a type with the `Title` and `Completed` just like they are on `Todo`.
 
 ### Omit
 
@@ -43,7 +43,7 @@ public class Todo
 public partial class TodoPreview;
 ```
 
-Just like [`Pick`](#pick), this will create you a type but with all the defined properties removed. It will also create you a `From` method for easily mapping between the two.
+Just like [`Pick`](#pick), this will create you a type but with all the defined properties removed.
 
 ## Pitfalls
 
