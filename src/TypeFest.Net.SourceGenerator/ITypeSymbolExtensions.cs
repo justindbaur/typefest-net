@@ -46,4 +46,12 @@ internal static class ITypeSymbolExtensions
 
         BuildFrom(symbol, sb);
     }
+
+    public static string ToSafeExactName(this ITypeSymbol type)
+    {
+        return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier));
+    }
+
+    public static string ToFullDisplayString(this ITypeSymbol type)
+        => type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 }

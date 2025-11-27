@@ -241,7 +241,7 @@ namespace TypeFest.Net.SourceGenerator
                             {
                                 Name = ps.Name,
                                 // global qualified type name, will null annotations
-                                Type = ps.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                                Type = ps.Type.ToSafeExactName(),
                                 IsRequired = ps.IsRequired,
                                 SetAccess = ps.SetMethod == null
                                     ? SetAccess.None
@@ -361,7 +361,7 @@ namespace TypeFest.Net.SourceGenerator
                             {
                                 Name = ps.Name,
                                 // global qualified type name, will null annotations
-                                Type = ps.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                                Type = ps.Type.ToSafeExactName(),
                                 IsRequired = ps.IsRequired,
                                 SetAccess = ps.SetMethod == null
                                     ? SetAccess.None
