@@ -80,7 +80,15 @@ namespace TypeFest.Net.SourceGenerator
             for (var i = PartialType.Hierarchy.Count - 1; i >= 0; i--)
             {
                 var type = PartialType.Hierarchy[i];
-                writer.WriteLine($"partial {type.GetKindString()} {type.QualifiedName}");
+                writer.Write($"partial {type.GetKindString()} {type.QualifiedName} : ");
+                if (IsInto)
+                {
+                    writer.WriteLine($"global::TypeFest.Net.IIntoable<{GenericType.GlobalName()}>");
+                }
+                else
+                {
+                    writer.WriteLine($"global::TypeFest.Net.IFromable<{PartialType.GlobalName()}, {GenericType.GlobalName()}>");
+                }
                 writer.WriteLine("{");
                 writer.Indent++;
 
@@ -89,12 +97,13 @@ namespace TypeFest.Net.SourceGenerator
                     // Start method
                     if (IsInto)
                     {
-                        writer.WriteLine($"public {GenericType.GlobalName()} Into{GenericType.MetadataName}()");
+                        writer.WriteLine("/// <inheritdoc />");
+                        writer.WriteLine($"public global::TypeFest.Net.IIntoable<{GenericType.GlobalName()}>.{GenericType.GlobalName()} Into()");
                     }
                     else
                     {
-                        // TODO: Do I need to put global in front?
-                        writer.WriteLine($"public static {PartialType.GlobalName()} From{GenericType.MetadataName}({GenericType.GlobalName()} value)");
+                        writer.WriteLine("/// <inheritdoc />");
+                        writer.WriteLine($"public static {PartialType.GlobalName()} From({GenericType.GlobalName()} value)");
                     }
                     writer.WriteLine("{");
                     writer.Indent++;
