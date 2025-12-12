@@ -16,7 +16,7 @@ namespace TypeFest.Net.SourceGenerator
             var pickSpecAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
                     "TypeFest.Net.PickAttribute`1",
                     predicate: static (node, _) => true,
-                    transform: static (context, _) => PartialTypeSpec.CreatePick(context.TargetSymbol, context.Attributes[0])
+                    transform: static (context, token) => PartialTypeSpec.CreatePick(context, token)
                 )
                 .WithTrackingName("Pick");
 
@@ -36,7 +36,7 @@ namespace TypeFest.Net.SourceGenerator
             var omitSpecsAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
                     "TypeFest.Net.OmitAttribute`1",
                     predicate: static (node, _) => true,
-                    transform: static (context, _) => PartialTypeSpec.CreateOmit(context.TargetSymbol, context.Attributes[0])
+                    transform: static (context, token) => PartialTypeSpec.CreateOmit(context, token)
                 )
                 .WithTrackingName("Omit");
 

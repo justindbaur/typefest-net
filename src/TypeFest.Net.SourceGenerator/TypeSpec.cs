@@ -2,9 +2,12 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using TypeFest.Net.SourceGenerator.Utilities;
 
 namespace TypeFest.Net.SourceGenerator
@@ -41,6 +44,7 @@ namespace TypeFest.Net.SourceGenerator
         private static bool TryCreate(
             ISymbol targetSymbol,
             AttributeData attributeData,
+            AttributeSyntax attributeSyntax,
             [NotNullWhen(true)] out INamedTypeSymbol? targetType,
             [NotNullWhen(true)] out INamedTypeSymbol? sourceType,
             [NotNullWhen(true)] out ImmutableHashSet<string>? members,
@@ -110,12 +114,11 @@ namespace TypeFest.Net.SourceGenerator
                     .ToImmutableHashSet();
             }
 
-            bool ValidateAndAddMember(TypedConstant typedConstant)
+            bool ValidateAndAddMember(TypedConstant typedConstant, SyntaxNode argument)
             {
                 if (typedConstant.IsNull)
                 {
-                    // TODO: Get location more specific to this argument
-                    var location = attributeData.GetLocation();
+                    var location = argument.GetLocation();
 
                     diagnosticsBuilder.Add(DiagnosticInfo.Create(
                         Diagnostics.NullArgument,
@@ -129,8 +132,7 @@ namespace TypeFest.Net.SourceGenerator
 
                 if (!memberBuilder.Add(member))
                 {
-                    // TODO: Get location more specific to this argument
-                    var location = attributeData.GetLocation();
+                    var location = argument.GetLocation();
 
                     diagnosticsBuilder.Add(DiagnosticInfo.Create(
                         Diagnostics.DuplicateArgument,
@@ -143,8 +145,7 @@ namespace TypeFest.Net.SourceGenerator
                 // Check that it exists on the source type
                 if (!sourceMembers.Contains(member))
                 {
-                    // TODO: Get location more specific to this argument
-                    var location = attributeData.GetLocation();
+                    var location = argument.GetLocation();
 
                     diagnosticsBuilder.Add(DiagnosticInfo.Create(
                         Diagnostics.InvalidPropertyName,
@@ -157,7 +158,11 @@ namespace TypeFest.Net.SourceGenerator
                 return true;
             }
 
-            if (!ValidateAndAddMember(firstArg))
+            // We've already validate 2 arguments
+            Debug.Assert(attributeSyntax.ArgumentList is not null);
+
+            // First arg is easy, it's the first syntax argument
+            if (!ValidateAndAddMember(firstArg, attributeSyntax.ArgumentList!.Arguments[0]))
             {
                 sourceType = null;
                 targetType = null;
@@ -169,8 +174,7 @@ namespace TypeFest.Net.SourceGenerator
             if (paramsArg.Values.IsDefault)
             {
                 // If paramsArg is a thing but is default that means the value is null
-                // TODO: Get location more specific to this argument
-                var location = attributeData.GetLocation();
+                var location = attributeSyntax.ArgumentList.Arguments[1].GetLocation();
 
                 diagnosticsBuilder.Add(DiagnosticInfo.Create(
                     Diagnostics.NullArgument,
@@ -184,9 +188,41 @@ namespace TypeFest.Net.SourceGenerator
                 return true;
             }
 
-            foreach (var paramArg in paramsArg.Values)
+            ImmutableArray<SyntaxNode> normalizedArguments;
+
+            if (attributeSyntax.ArgumentList.Arguments is [_, var secondArg])
             {
-                if (!ValidateAndAddMember(paramArg))
+                switch (secondArg.Expression)
+                {
+                    case CollectionExpressionSyntax collectionExpression:
+                        normalizedArguments = collectionExpression.Elements.Select(e => (SyntaxNode)e).ToImmutableArray();
+                        break;
+                    case ArrayCreationExpressionSyntax arrayCreation:
+                        if (arrayCreation.Initializer == null)
+                        {
+                            throw new InvalidOperationException("When can the array initializer be null?");
+                        }
+
+                        normalizedArguments = arrayCreation.Initializer.Expressions.Select(e => (SyntaxNode)e).ToImmutableArray();
+                        break;
+                    case ImplicitArrayCreationExpressionSyntax implicitArrayCreation:
+                        normalizedArguments = implicitArrayCreation.Initializer.Expressions.Select(e => (SyntaxNode)e).ToImmutableArray();
+                        break;
+                    default:
+                        normalizedArguments = ImmutableArray.Create<SyntaxNode>(secondArg);
+                        break;
+                }
+            }
+            else
+            {
+                normalizedArguments = attributeSyntax.ArgumentList.Arguments.Skip(1).Select(a => (SyntaxNode)a).ToImmutableArray();
+            }
+
+            for (int i = 0; i < paramsArg.Values.Length; i++)
+            {
+                TypedConstant paramArg = paramsArg.Values[i];
+                var syntaxArgument = normalizedArguments[i];
+                if (!ValidateAndAddMember(paramArg, syntaxArgument))
                 {
                     sourceType = null;
                     targetType = null;
@@ -203,12 +239,14 @@ namespace TypeFest.Net.SourceGenerator
             return true;
         }
 
-        public static Result<PartialTypeSpec?> CreateOmit(ISymbol targetSymbol, AttributeData attributeData)
+        public static Result<PartialTypeSpec?> CreateOmit(GeneratorAttributeSyntaxContext context, CancellationToken token)
         {
-            // TODO: Validate more closely that it's _our_ OmitAttribute
+            var (data, syntax) = context.GetSingleDataAndSyntax();
+
             if (!TryCreate(
-                targetSymbol,
-                attributeData,
+                context.TargetSymbol,
+                data,
+                syntax,
                 out var targetType,
                 out var sourceType,
                 out var members,
@@ -323,12 +361,14 @@ namespace TypeFest.Net.SourceGenerator
             return candidate.ToImmutableEquatableArray();
         }
 
-        public static Result<PartialTypeSpec?> CreatePick(ISymbol targetSymbol, AttributeData attributeData)
+        public static Result<PartialTypeSpec?> CreatePick(GeneratorAttributeSyntaxContext context, CancellationToken token)
         {
+            var (data, syntax) = context.GetSingleDataAndSyntax();
             // TODO: Validate more closely that it's _our_ PickAttribute
             if (!TryCreate(
-                targetSymbol,
-                attributeData,
+                context.TargetSymbol,
+                data,
+                syntax,
                 out var targetType,
                 out var sourceType,
                 out var members,
@@ -336,6 +376,8 @@ namespace TypeFest.Net.SourceGenerator
             {
                 return new Result<PartialTypeSpec?>(null, diagnostics.ToImmutableArray().ToImmutableEquatableArray());
             }
+
+            token.ThrowIfCancellationRequested();
 
             if (targetType.TypeKind is TypeKind.Class or TypeKind.Struct)
             {

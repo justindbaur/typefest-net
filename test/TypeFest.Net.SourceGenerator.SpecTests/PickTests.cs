@@ -293,6 +293,11 @@ public class PickTests : TestBase
 
         var diagnostic = Assert.Single(result.Diagnostics);
         Assert.Equal("TF0002", diagnostic.Id);
+        var lineSpan = diagnostic.Location.GetLineSpan();
+        Assert.Equal(4, lineSpan.StartLinePosition.Line);
+        Assert.Equal(22, lineSpan.StartLinePosition.Character);
+        Assert.Equal(4, lineSpan.EndLinePosition.Line);
+        Assert.Equal(28, lineSpan.EndLinePosition.Character);
         Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
         Assert.Equal("'Name' is a duplicate argument and will be ignored.", diagnostic.GetMessage());
     }
@@ -302,6 +307,9 @@ public class PickTests : TestBase
     [InlineData("\"Name\", null")]
     [InlineData("null, \"Name\"")]
     [InlineData("\"Id\", \"Name\", null")]
+    [InlineData("\"Id\", [\"Name\", null]")]
+    [InlineData("\"Id\", new string[] { \"Name\", null }")]
+    [InlineData("\"Id\", new[] { \"Name\", null }")]
     public async Task NullMemberName(string pickArgs)
     {
         var result = await RunAsync($$"""
