@@ -12,7 +12,7 @@ public static class GeneratorAttributeSyntaxContextExtensions
     {
         Debug.Assert(context.Attributes.Length == 1);
         var data = context.Attributes[0];
-        
+
         Debug.Assert(data.AttributeClass is not null);
 
         if (context.TargetNode is not MemberDeclarationSyntax memberDeclaration)
