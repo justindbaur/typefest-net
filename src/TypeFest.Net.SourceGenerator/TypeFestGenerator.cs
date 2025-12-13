@@ -13,14 +13,13 @@ namespace TypeFest.Net.SourceGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            var pickSpecAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
+            var pickSpec = context.SyntaxProvider.ForAttributeWithMetadataName(
                     "TypeFest.Net.PickAttribute`1",
                     predicate: static (node, _) => true,
-                    transform: static (context, token) => PartialTypeSpec.CreatePick(context, token)
+                    transform: PartialTypeSpec.CreatePick
                 )
+                .FilterDiagnostics()
                 .WithTrackingName("Pick");
-
-            var pickSpec = ReportDiagnostics(context, pickSpecAndDiagnostics);
 
             context.RegisterSourceOutput(pickSpec, (context, spec) =>
             {
@@ -33,14 +32,13 @@ namespace TypeFest.Net.SourceGenerator
                 context.AddSource($"{spec.TargetType.FilenameHint}.Pick.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
             });
 
-            var omitSpecsAndDiagnostics = context.SyntaxProvider.ForAttributeWithMetadataName(
+            var omitSpecs = context.SyntaxProvider.ForAttributeWithMetadataName(
                     "TypeFest.Net.OmitAttribute`1",
                     predicate: static (node, _) => true,
-                    transform: static (context, token) => PartialTypeSpec.CreateOmit(context, token)
+                    transform: PartialTypeSpec.CreateOmit
                 )
+                .FilterDiagnostics()
                 .WithTrackingName("Omit");
-
-            var omitSpecs = ReportDiagnostics(context, omitSpecsAndDiagnostics);
 
             context.RegisterSourceOutput(omitSpecs, (context, spec) =>
             {

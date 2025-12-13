@@ -39,6 +39,10 @@ namespace TypeFest.Net.SourceGenerator
             }
         }
 
+        public abstract bool HasChanges { get; }
+
+        public abstract IEnumerable<string> GetMemberNames();
+
         protected abstract void EmitCore(IndentedTextWriter writer);
 
         private static bool TryCreate(
@@ -113,6 +117,10 @@ namespace TypeFest.Net.SourceGenerator
                     .Select(ps => ps.Name)
                     .ToImmutableHashSet();
             }
+
+            var targetTypeMembers = namedTargetSymbol.GetMembers()
+                .Select(m => m.Name)
+                .ToImmutableHashSet();
 
             bool ValidateAndAddMember(TypedConstant typedConstant, SyntaxNode argument)
             {
@@ -242,11 +250,15 @@ namespace TypeFest.Net.SourceGenerator
         public static Result<PartialTypeSpec?> CreateOmit(GeneratorAttributeSyntaxContext context, CancellationToken token)
         {
             var (data, syntax) = context.GetSingleDataAndSyntax();
+            return CreateOmit(context.TargetSymbol, data, syntax, token);
+        }
 
+        public static Result<PartialTypeSpec?> CreateOmit(ISymbol target, AttributeData attributeData, AttributeSyntax attributeSyntax, CancellationToken token)
+        {
             if (!TryCreate(
-                context.TargetSymbol,
-                data,
-                syntax,
+                target,
+                attributeData,
+                attributeSyntax,
                 out var targetType,
                 out var sourceType,
                 out var members,
@@ -255,13 +267,21 @@ namespace TypeFest.Net.SourceGenerator
                 return new Result<PartialTypeSpec?>(null, diagnostics.ToImmutableArray().ToImmutableEquatableArray());
             }
 
+            var targetTypeMembers = targetType.GetMembers()
+                .Select(m => m.Name)
+                .ToImmutableHashSet();
+
             if (targetType.TypeKind is TypeKind.Class or TypeKind.Struct)
             {
                 var nonOmittedProperties = sourceType.GetMembers()
                     .OfType<IPropertySymbol>()
                     .Where(ps => ps.DeclaredAccessibility == Accessibility.Public)
                     .Where(ps => !members.Contains(ps.Name))
+                    .Where(ps => !targetTypeMembers.Contains(ps.Name))
                     .ToImmutableArray();
+
+                // TODO: Sometimes create a diagnostic for when we are running source generator mode
+                // and a property that exists on the target type is specified in the attribute
 
                 var constructors = sourceType.InstanceConstructors
                     .Select(c => TryGetDataConstructorArgs(c, nonOmittedProperties))
@@ -275,7 +295,7 @@ namespace TypeFest.Net.SourceGenerator
                         SourceType = HierarchyInfo.From(sourceType),
                         TargetType = HierarchyInfo.From(targetType),
                         Constructors = constructors,
-                        Properties = [.. nonOmittedProperties.Select(ps =>
+                        Properties = nonOmittedProperties.Select(ps =>
                         {
                             return new PropertySpec
                             {
@@ -289,7 +309,7 @@ namespace TypeFest.Net.SourceGenerator
                                         ? SetAccess.Init
                                         : SetAccess.Set,
                             };
-                        })],
+                        }).ToImmutableEquatableArray(),
                     },
                     diagnostics.ToImmutableArray().ToImmutableEquatableArray()
                 );
@@ -299,21 +319,25 @@ namespace TypeFest.Net.SourceGenerator
                 var nonOmittedFields = sourceType.GetMembers()
                     .OfType<IFieldSymbol>()
                     .Where(fs => !members.Contains(fs.Name))
+                    .Where(fs => !targetTypeMembers.Contains(fs.Name))
                     .ToImmutableArray();
+
+                // TODO: Sometimes create a diagnostic when running in source generator mode
+                // that a member name was given but it already exists on the target type
 
                 return new Result<PartialTypeSpec?>(
                     new EnumTypeSpec
                     {
                         SourceType = HierarchyInfo.From(sourceType),
                         TargetType = HierarchyInfo.From(targetType),
-                        Members = [.. nonOmittedFields.Select(fs =>
+                        Members = nonOmittedFields.Select(fs =>
                         {
                             return new MemberSpec
                             {
                                 Name = fs.Name,
                                 Value = fs.ConstantValue?.ToString()
                             };
-                        })],
+                        }).ToImmutableEquatableArray(),
                     },
                     diagnostics.ToImmutableArray().ToImmutableEquatableArray()
                 );
@@ -364,9 +388,13 @@ namespace TypeFest.Net.SourceGenerator
         public static Result<PartialTypeSpec?> CreatePick(GeneratorAttributeSyntaxContext context, CancellationToken token)
         {
             var (data, syntax) = context.GetSingleDataAndSyntax();
-            // TODO: Validate more closely that it's _our_ PickAttribute
+            return CreatePick(context.TargetSymbol, data, syntax, token);
+        }
+
+        public static Result<PartialTypeSpec?> CreatePick(ISymbol target, AttributeData data, AttributeSyntax syntax, CancellationToken token)
+        {
             if (!TryCreate(
-                context.TargetSymbol,
+                target,
                 data,
                 syntax,
                 out var targetType,
@@ -379,13 +407,21 @@ namespace TypeFest.Net.SourceGenerator
 
             token.ThrowIfCancellationRequested();
 
+            var targetTypeMembers = targetType.GetMembers()
+                .Select(m => m.Name)
+                .ToImmutableHashSet();
+
             if (targetType.TypeKind is TypeKind.Class or TypeKind.Struct)
             {
                 var pickedProperties = sourceType.GetMembers()
                     .OfType<IPropertySymbol>()
                     .Where(ps => ps.DeclaredAccessibility == Accessibility.Public)
                     .Where(ps => members.Contains(ps.Name))
+                    .Where(ps => !targetTypeMembers.Contains(ps.Name))
                     .ToImmutableArray();
+
+                // TODO: Sometimes create diagnostic when running in source generator mode
+                // and the user has a member specified that already exists on the target type
 
                 var constructors = sourceType.InstanceConstructors
                     .Select(c => TryGetDataConstructorArgs(c, pickedProperties))
@@ -399,7 +435,7 @@ namespace TypeFest.Net.SourceGenerator
                         SourceType = HierarchyInfo.From(sourceType),
                         TargetType = HierarchyInfo.From(targetType),
                         Constructors = constructors,
-                        Properties = [.. pickedProperties.Select(ps =>
+                        Properties = pickedProperties.Select(ps =>
                         {
                             return new PropertySpec
                             {
@@ -413,7 +449,7 @@ namespace TypeFest.Net.SourceGenerator
                                         ? SetAccess.Init
                                         : SetAccess.Set,
                             };
-                        })],
+                        }).ToImmutableEquatableArray(),
                     },
                     diagnostics.ToImmutableArray().ToImmutableEquatableArray()
                 );
@@ -423,21 +459,25 @@ namespace TypeFest.Net.SourceGenerator
                 var pickedFields = sourceType.GetMembers()
                     .OfType<IFieldSymbol>()
                     .Where(fs => members.Contains(fs.Name))
+                    .Where(fs => !targetTypeMembers.Contains(fs.Name))
                     .ToImmutableArray();
+
+                // TODO: Sometimes create diagnostic when running in source gen mode
+                // and the user adds a member that already exists on the target type
 
                 return new Result<PartialTypeSpec?>(
                     new EnumTypeSpec
                     {
                         SourceType = HierarchyInfo.From(sourceType),
                         TargetType = HierarchyInfo.From(targetType),
-                        Members = [.. pickedFields.Select(fs =>
+                        Members = pickedFields.Select(fs =>
                         {
                             return new MemberSpec
                             {
                                 Name = fs.Name,
                                 Value = fs.ConstantValue?.ToString()
                             };
-                        })],
+                        }).ToImmutableEquatableArray(),
                     },
                     diagnostics.ToImmutableArray().ToImmutableEquatableArray()
                 );
@@ -452,7 +492,14 @@ namespace TypeFest.Net.SourceGenerator
     internal sealed record NonEnumTypeSpec : PartialTypeSpec
     {
         public required ImmutableEquatableArray<ImmutableEquatableArray<ConstructorArgumentSpec>> Constructors { get; init; }
-        public required IReadOnlyList<PropertySpec> Properties { get; init; }
+        public required ImmutableEquatableArray<PropertySpec> Properties { get; init; }
+
+        public override bool HasChanges => Properties.Count > 0;
+
+        public override IEnumerable<string> GetMemberNames()
+        {
+            return Properties.Select(p => p.Name);
+        }
 
         protected override void EmitCore(IndentedTextWriter writer)
         {
@@ -512,7 +559,13 @@ namespace TypeFest.Net.SourceGenerator
 
     internal sealed record EnumTypeSpec : PartialTypeSpec
     {
-        public required IReadOnlyList<MemberSpec> Members { get; init; }
+        public required ImmutableEquatableArray<MemberSpec> Members { get; init; }
+        public override bool HasChanges => Members.Count > 0;
+
+        public override IEnumerable<string> GetMemberNames()
+        {
+            return Members.Select(m => m.Name);
+        }
 
         protected override void EmitCore(IndentedTextWriter writer)
         {
@@ -544,7 +597,12 @@ namespace TypeFest.Net.SourceGenerator
         Init,
     }
 
-    internal sealed record PropertySpec
+    internal interface IMemberSpec
+    {
+        string Name { get; }
+    }
+
+    internal sealed record PropertySpec : IMemberSpec
     {
         public required string Type { get; init; }
         public required string Name { get; init; }
@@ -564,7 +622,7 @@ namespace TypeFest.Net.SourceGenerator
         }
     }
 
-    internal sealed record MemberSpec
+    internal sealed record MemberSpec : IMemberSpec
     {
         public required string Name { get; init; }
         public required string? Value { get; init; }
