@@ -34,7 +34,7 @@ public class UpdateTypeCodeFixProviderTests : CSharpCodeFixTest<TypeFestAnalyzer
         );
     }
 
-    private async Task RunAsync([StringSyntax("C#-test")]string testCode, [StringSyntax("C#-test")]string fixedCode)
+    private async Task RunAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode)
     {
         TestCode = testCode;
         FixedCode = fixedCode;

@@ -119,7 +119,7 @@ public class AnalyzerTests : CSharpAnalyzerTest<TypeFestAnalyzer, DefaultVerifie
         );
     }
 
-    private async Task RunAsync([StringSyntax("C#-test")]string source)
+    private async Task RunAsync([StringSyntax("C#-test")] string source)
     {
         TestCode = source;
 
