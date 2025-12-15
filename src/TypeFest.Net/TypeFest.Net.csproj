@@ -22,6 +22,7 @@
     <None Include="..\TypeFest.Net.Analyzers\bin\$(Configuration)\netstandard2.0\TypeFest.Net.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\TypeFest.Net.CodeFixers\bin\$(Configuration)\netstandard2.0\TypeFest.Net.CodeFixers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visiable="false" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="TypeFest.Net.props" Pack="true" PackagePath="build" Visible="true" />
   </ItemGroup>
 
 </Project>

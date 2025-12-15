@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <TypeFestNet_GenerateMode Condition="'$(TypeFestNet_GenerateMode)' == ''">SourceGen</TypeFestNet_GenerateMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <CompilerVisibleProperty Include="TypeFestNet_GenerateMode" />
+  </ItemGroup>
+</Project>
