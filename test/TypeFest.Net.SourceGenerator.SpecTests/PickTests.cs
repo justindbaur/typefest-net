@@ -29,7 +29,7 @@ public class PickTests : TestBase
             {
                 partial class EditPerson
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Person.Name" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Name"/>
                     public string Name { get; set; }
                 }
             }
@@ -64,11 +64,11 @@ public class PickTests : TestBase
             {
                 partial class EditPerson
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Person.Name" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Name"/>
                     public string Name { get; set; }
-                    /// <inheritdoc cref="global::TestNamespace.Person.Age" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Age"/>
                     public int Age { get; set; }
-                    /// <inheritdoc cref="global::TestNamespace.Person.Occupation" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Occupation"/>
                     public string Occupation { get; set; }
                 }
             }
@@ -102,11 +102,11 @@ public class PickTests : TestBase
             {
                 partial class EditPerson
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Person.Name" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Name"/>
                     public string Name { get; set; }
-                    /// <inheritdoc cref="global::TestNamespace.Person.Age" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Age"/>
                     public int Age { get; set; }
-                    /// <inheritdoc cref="global::TestNamespace.Person.Occupation" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Occupation"/>
                     public string Occupation { get; set; }
                 }
             }
@@ -139,9 +139,9 @@ public class PickTests : TestBase
             {
                 partial enum PickTest
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Test.One" />
+                    /// <inheritdoc cref="global::TestNamespace.Test.One"/>
                     One = 0,
-                    /// <inheritdoc cref="global::TestNamespace.Test.Two" />
+                    /// <inheritdoc cref="global::TestNamespace.Test.Two"/>
                     Two = 1,
                 }
             }
@@ -176,9 +176,9 @@ public class PickTests : TestBase
                         this.Age = Age;
                     }
 
-                    /// <inheritdoc cref="global::TestNamespace.Person.Name" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Name"/>
                     public string Name { get; init; }
-                    /// <inheritdoc cref="global::TestNamespace.Person.Age" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Age"/>
                     public int Age { get; init; }
                 }
             }
@@ -211,7 +211,7 @@ public class PickTests : TestBase
             {
                 partial class EditPerson
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Person.Name" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Name"/>
                     public required string Name { get; init; }
                 }
             }
@@ -238,7 +238,7 @@ public class PickTests : TestBase
 
             partial class EditPerson
             {
-                /// <inheritdoc cref="global::Person.Name" />
+                /// <inheritdoc cref="global::Person.Name"/>
                 public string Name { get; set; }
             }
 
@@ -281,9 +281,9 @@ public class PickTests : TestBase
                         Name = name;
                     }
 
-                    /// <inheritdoc cref="global::Test.Person.Name" />
+                    /// <inheritdoc cref="global::Test.Person.Name"/>
                     public string Name { get; }
-                    /// <inheritdoc cref="global::Test.Person.Age" />
+                    /// <inheritdoc cref="global::Test.Person.Age"/>
                     public int Age { get; init; }
                 }
             }

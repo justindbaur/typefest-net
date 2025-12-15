@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace TypeFest.Net.SourceGenerator.Utilities;
+namespace TypeFest.Net.Analyzer.Shared;
 
 internal sealed class ImmutableEquatableArray<T> : IEquatable<ImmutableEquatableArray<T>>, IReadOnlyList<T>
     where T : IEquatable<T>

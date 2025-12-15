@@ -1,7 +1,7 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.Analyzer.Common;
 
 internal static class ITypeSymbolExtensions
 {

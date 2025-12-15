@@ -1,8 +1,8 @@
 using Microsoft.CodeAnalysis;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.Analyzer.Common;
 
-internal static class Helpers
+internal static class AttributeDataExtensions
 {
     public static Location? GetLocation(this AttributeData attributeData)
     {

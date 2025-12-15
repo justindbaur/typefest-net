@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using TypeFest.Net.SourceGenerator.Utilities;
+using TypeFest.Net.Analyzer.Shared;
 
 namespace TypeFest.Net.SourceGenerator
 {

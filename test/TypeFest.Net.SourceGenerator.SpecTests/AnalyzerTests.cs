@@ -6,39 +6,40 @@ namespace TypeFest.Net.SourceGenerator.SpecTests;
 
 public class AnalyzerTests : CSharpAnalyzerTest<TypeFestAnalyzer, DefaultVerifier>
 {
-    [Fact]
-    public async Task OutOfSyncType_CausesDiagnostic()
-    {
-        await RunAsync(
-            """
-            using TypeFest.Net;
+    // TODO: Move these to CodeFixer tests
+    // [Fact]
+    // public async Task OutOfSyncType_CausesDiagnostic()
+    // {
+    //     await RunAsync(
+    //         """
+    //         using TypeFest.Net;
 
-            namespace Test;
+    //         namespace Test;
 
-            [{|TF0006:Omit<Person>("Name")|}]
-            public partial class OtherPerson;
-            """
-        );
-    }
+    //         [{|TF0006:Omit<Person>("Name")|}]
+    //         public partial class OtherPerson;
+    //         """
+    //     );
+    // }
 
-    [Fact]
-    public async Task UpToDateType_CausesNoDiagnostics()
-    {
-        await RunAsync(
-            """
-            using TypeFest.Net;
+    // [Fact]
+    // public async Task UpToDateType_CausesNoDiagnostics()
+    // {
+    //     await RunAsync(
+    //         """
+    //         using TypeFest.Net;
 
-            namespace Test;
+    //         namespace Test;
 
-            [Pick<Person>("Age")]
-            public partial class OtherPerson
-            {
-                /// <inheritdoc cref="global::Test.Person" />
-                public int Age { get; }
-            }
-            """
-        );
-    }
+    //         [Pick<Person>("Age")]
+    //         public partial class OtherPerson
+    //         {
+    //             /// <inheritdoc cref="global::Test.Person" />
+    //             public int Age { get; }
+    //         }
+    //         """
+    //     );
+    // }
 
     [Theory]
     [InlineData("class", "Omit<Color>(\"Red\")")]
@@ -65,18 +66,11 @@ public class AnalyzerTests : CSharpAnalyzerTest<TypeFestAnalyzer, DefaultVerifie
     }
 
     [Theory]
-    [InlineData("{|TF0002:\"Name\"|}", true)]
-    [InlineData("\"Age\", {|TF0002:\"Name\"|}", true)]
-    [InlineData("[{|TF0002:\"Name\"|}]", true)]
-    public async Task DuplicateMemberNames_CausesDiagnostic(string extraArg, bool expectExtra)
+    [InlineData("{|TF0002:\"Name\"|}")]
+    [InlineData("\"Age\", {|TF0002:\"Name\"|}")]
+    [InlineData("[{|TF0002:\"Name\"|}]")]
+    public async Task DuplicateMemberNames_CausesDiagnostic(string extraArg)
     {
-        if (expectExtra)
-        {
-            // TODO: Remove TF0006 when mode selector is done
-            TestState.ExpectedDiagnostics.Add(DiagnosticResult.CompilerWarning("TF0006")
-                .WithLocation(5, 2));
-        }
-
         await RunAsync(
             $"""
             using TypeFest.Net;
@@ -90,23 +84,15 @@ public class AnalyzerTests : CSharpAnalyzerTest<TypeFestAnalyzer, DefaultVerifie
     }
 
     [Theory]
-    [InlineData("{|TF0001:null|}", false)]
-    [InlineData("\"Name\", {|TF0001:null|}", true)]
-    [InlineData("{|TF0001:null|}, \"Name\"", true)]
-    [InlineData("\"Id\", \"Name\", {|TF0001:null|}", true)]
-    [InlineData("\"Id\", [\"Name\", {|TF0001:null|}]", true)]
-    [InlineData("\"Id\", new string[] { \"Name\", {|TF0001:null|} }", true)]
-    [InlineData("\"Id\", new[] { \"Name\", {|TF0001:null|} }", true)]
-    public async Task NullMemberName(string pickArgs, bool expectExtra)
+    [InlineData("{|TF0001:null|}")]
+    [InlineData("\"Name\", {|TF0001:null|}")]
+    [InlineData("{|TF0001:null|}, \"Name\"")]
+    [InlineData("\"Id\", \"Name\", {|TF0001:null|}")]
+    [InlineData("\"Id\", [\"Name\", {|TF0001:null|}]")]
+    [InlineData("\"Id\", new string[] { \"Name\", {|TF0001:null|} }")]
+    [InlineData("\"Id\", new[] { \"Name\", {|TF0001:null|} }")]
+    public async Task NullMemberName(string pickArgs)
     {
-        if (expectExtra)
-        {
-            TestState.ExpectedDiagnostics.Add(
-                DiagnosticResult.CompilerWarning("TF0006")
-                    .WithLocation(5, 2)
-            );
-        }
-
         await RunAsync(
             $$"""
             using TypeFest.Net;
@@ -136,6 +122,12 @@ public class AnalyzerTests : CSharpAnalyzerTest<TypeFestAnalyzer, DefaultVerifie
     private async Task RunAsync([StringSyntax("C#-test")]string source)
     {
         TestCode = source;
+
+        // TODO: Do this for the code fixer tests
+        // TestState.AnalyzerConfigFiles.Add(("/.editorconfig", """
+        // is_global = true
+        // build_property.TypeFestNet_GenerateMode = CodeFix
+        // """));
 
         TestState.AdditionalReferences.Add(typeof(PickAttribute<>).Assembly);
         TestState.ReferenceAssemblies = ReferenceAssemblies.Net.Net80;

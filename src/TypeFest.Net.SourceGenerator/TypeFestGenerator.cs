@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using TypeFest.Net.SourceGenerator.Utilities;
+using TypeFest.Net.Analyzer.Shared;
 
 namespace TypeFest.Net.SourceGenerator
 {
@@ -13,13 +13,19 @@ namespace TypeFest.Net.SourceGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            var usingSourceGen = context.AnalyzerConfigOptionsProvider
+                .Select((options, _) => options.IsUsingSourceGenMode());
+
             var pickSpec = context.SyntaxProvider.ForAttributeWithMetadataName(
                     "TypeFest.Net.PickAttribute`1",
                     predicate: static (node, _) => true,
                     transform: PartialTypeSpec.CreatePick
                 )
                 .FilterDiagnostics()
-                .WithTrackingName("Pick");
+                .WithTrackingName("Pick")
+                .Combine(usingSourceGen)
+                .Where(v => v.Right)
+                .Select((v, _) => v.Left);
 
             context.RegisterSourceOutput(pickSpec, (context, spec) =>
             {
@@ -38,7 +44,10 @@ namespace TypeFest.Net.SourceGenerator
                     transform: PartialTypeSpec.CreateOmit
                 )
                 .FilterDiagnostics()
-                .WithTrackingName("Omit");
+                .WithTrackingName("Omit")
+                .Combine(usingSourceGen)
+                .Where(v => v.Right)
+                .Select((v, _) => v.Left);
 
             context.RegisterSourceOutput(omitSpecs, (context, spec) =>
             {

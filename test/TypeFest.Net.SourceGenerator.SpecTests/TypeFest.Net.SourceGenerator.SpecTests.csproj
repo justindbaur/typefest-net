@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.2" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.2" />
     <PackageReference Include="xunit.v3" Version="3.0.1" />
   </ItemGroup>
 
@@ -29,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TypeFest.Net\TypeFest.Net.csproj" />
     <ProjectReference Include="..\..\src\TypeFest.Net.SourceGenerator\TypeFest.Net.SourceGenerator.csproj" />
+    <ProjectReference Include="..\..\src\TypeFest.Net.CodeFixers\TypeFest.Net.CodeFixers.csproj" />
   </ItemGroup>
 
 </Project>

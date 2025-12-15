@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using TypeFest.Net.SourceGenerator.Utilities;
+using TypeFest.Net.Analyzer.Shared;
 
 namespace TypeFest.Net.SourceGenerator;
 
@@ -36,17 +36,18 @@ public sealed class TypeFestAnalyzer : DiagnosticAnalyzer
 
         if (TryGetInfo(node, context, "TypeFest.Net.OmitAttribute`1", "OmitAttribute", "Omit", out var omitInfo))
         {
-            result = PartialTypeSpec.CreateOmit(omitInfo.Target, omitInfo.Data, node, context.CancellationToken);
+            result = PartialTypeSpec.CreateOmit(omitInfo.Target, omitInfo.Data, node, false, context.CancellationToken);
         }
         else if (TryGetInfo(node, context, "TypeFest.Net.PickAttribute`1", "PickAttribute", "Pick", out var pickInfo))
         {
-            result = PartialTypeSpec.CreatePick(pickInfo.Target, pickInfo.Data, node, context.CancellationToken);
+            result = PartialTypeSpec.CreatePick(pickInfo.Target, pickInfo.Data, node, false, context.CancellationToken);
         }
         else
         {
             return;
         }
 
+        var usingSourceGenMode = context.Options.AnalyzerConfigOptionsProvider.IsUsingSourceGenMode();
         // TODO: Switch to reporting errors here
         foreach (var diagnostic in result.Errors)
         {
@@ -60,13 +61,19 @@ public sealed class TypeFestAnalyzer : DiagnosticAnalyzer
             context.ReportDiagnostic(diag);
         }
 
-        if (result.Item != null && result.Item.HasChanges)
+        if (!usingSourceGenMode)
         {
-            context.ReportDiagnostic(Diagnostic.Create(
-                Diagnostics.PartialTypeOutOfSync,
-                node.GetLocation(),
-                result.Item.TargetType.FilenameHint, result.Item.SourceType.FilenameHint, string.Join(", ", result.Item.GetMemberNames())
-            ));
+            if (result.Item != null && result.Item.HasChanges)
+            {
+                var properties = ImmutableDictionary.CreateBuilder<string, string?>();
+                result.Item.Serialize(properties);
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.PartialTypeOutOfSync,
+                    node.GetLocation(),
+                    properties: properties.ToImmutable(),
+                    result.Item.TargetType.FilenameHint, result.Item.SourceType.FilenameHint, string.Join(", ", result.Item.GetMemberNames())
+                ));
+            }
         }
     }
 

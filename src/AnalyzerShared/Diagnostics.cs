@@ -1,8 +1,8 @@
 using Microsoft.CodeAnalysis;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.Analyzer.Shared;
 
-public static class Diagnostics
+internal static class Diagnostics
 {
     private const string HelpLinkUri = "https://justinbaur.dev/docs/type-fest/errors#{0}";
 

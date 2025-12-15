@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using TypeFest.Net.SourceGenerator.Utilities;
+using TypeFest.Net.Analyzer.Common;
 using static Microsoft.CodeAnalysis.SymbolDisplayTypeQualificationStyle;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.Analyzer.Shared;
 
 internal sealed record TypeInfo(string QualifiedName, TypeKind TypeKind, bool IsRecord)
 {

@@ -7,10 +7,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using TypeFest.Net.SourceGenerator.Utilities;
+using TypeFest.Net.Analyzer.Common;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
-namespace TypeFest.Net.SourceGenerator
+namespace TypeFest.Net.Analyzer.Shared
 {
     internal abstract record PartialTypeSpec
     {
@@ -49,6 +51,7 @@ namespace TypeFest.Net.SourceGenerator
             ISymbol targetSymbol,
             AttributeData attributeData,
             AttributeSyntax attributeSyntax,
+            bool inSourceGenerator,
             [NotNullWhen(true)] out INamedTypeSymbol? targetType,
             [NotNullWhen(true)] out INamedTypeSymbol? sourceType,
             [NotNullWhen(true)] out ImmutableHashSet<string>? members,
@@ -58,6 +61,8 @@ namespace TypeFest.Net.SourceGenerator
             {
                 throw new InvalidOperationException("Target type is not a named type symbol, I think this should be impossible.");
             }
+
+            // TODO: Validate partial but only when using source gen
 
             if (attributeData.AttributeClass == null)
             {
@@ -250,15 +255,16 @@ namespace TypeFest.Net.SourceGenerator
         public static Result<PartialTypeSpec?> CreateOmit(GeneratorAttributeSyntaxContext context, CancellationToken token)
         {
             var (data, syntax) = context.GetSingleDataAndSyntax();
-            return CreateOmit(context.TargetSymbol, data, syntax, token);
+            return CreateOmit(context.TargetSymbol, data, syntax, true, token);
         }
 
-        public static Result<PartialTypeSpec?> CreateOmit(ISymbol target, AttributeData attributeData, AttributeSyntax attributeSyntax, CancellationToken token)
+        public static Result<PartialTypeSpec?> CreateOmit(ISymbol target, AttributeData attributeData, AttributeSyntax attributeSyntax, bool inSourceGenerator, CancellationToken token)
         {
             if (!TryCreate(
                 target,
                 attributeData,
                 attributeSyntax,
+                inSourceGenerator,
                 out var targetType,
                 out var sourceType,
                 out var members,
@@ -388,15 +394,16 @@ namespace TypeFest.Net.SourceGenerator
         public static Result<PartialTypeSpec?> CreatePick(GeneratorAttributeSyntaxContext context, CancellationToken token)
         {
             var (data, syntax) = context.GetSingleDataAndSyntax();
-            return CreatePick(context.TargetSymbol, data, syntax, token);
+            return CreatePick(context.TargetSymbol, data, syntax, true, token);
         }
 
-        public static Result<PartialTypeSpec?> CreatePick(ISymbol target, AttributeData data, AttributeSyntax syntax, CancellationToken token)
+        public static Result<PartialTypeSpec?> CreatePick(ISymbol target, AttributeData data, AttributeSyntax syntax, bool inSourceGenerator, CancellationToken token)
         {
             if (!TryCreate(
                 target,
                 data,
                 syntax,
+                inSourceGenerator,
                 out var targetType,
                 out var sourceType,
                 out var members,
@@ -487,6 +494,103 @@ namespace TypeFest.Net.SourceGenerator
                 throw new InvalidOperationException($"TypeKind of {targetType.TypeKind} is not supported.");
             }
         }
+
+        public abstract TypeDeclarationSyntax Build(TypeDeclarationSyntax existing, TypeSyntax sourceType);
+
+        public void Serialize(ImmutableDictionary<string, string?>.Builder destination)
+        {
+            if (this is NonEnumTypeSpec nonEnum)
+            {
+                destination.Add("type", "non-enum");
+                destination.Add("props", string.Join(",", nonEnum.Properties.Select(p => p.Name)));
+
+                foreach (var prop in nonEnum.Properties)
+                {
+                    destination.Add($"p:{prop.Name}", $"{prop.Type} {prop.SetAccess} {prop.IsRequired}");
+                }
+
+                // TODO: Constructors
+            }
+            else if (this is EnumTypeSpec enumType)
+            {
+                destination.Add("type", "enum");
+            }
+            else
+            {
+                throw new InvalidOperationException($"Cannot serialize {this.GetType().FullName}");
+            }
+        }
+
+        public static PartialTypeSpec Deserialize(ImmutableDictionary<string, string?> properties)
+        {
+            if (!properties.TryGetValue("type", out var typeValue))
+            {
+                throw new InvalidOperationException("Could not find type");
+            }
+
+            if (typeValue == "non-enum")
+            {
+                var propsValue = properties["props"];
+                if (propsValue == null)
+                {
+                    throw new InvalidOperationException($"props value is null");
+                }
+
+                var props = propsValue.Split(',');
+
+                var typeProperties = new PropertySpec[props.Length];
+                for (var i = 0; i < typeProperties.Length; i++)
+                {
+                    var prop = props[i];
+
+                    if (!properties.TryGetValue($"p:{prop}", out var propValue))
+                    {
+                        throw new InvalidOperationException($"Property specified but no value");
+                    }
+
+                    if (propValue == null)
+                    {
+                        throw new InvalidOperationException("null prop value");
+                    }
+
+                    var propParts = propValue.Split(' ');
+
+                    if (propParts.Length != 3)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    typeProperties[i] = new PropertySpec
+                    {
+                        Name = prop,
+                        Type = propParts[0],
+                        SetAccess = Enum.TryParse<SetAccess>(propParts[1], out var setAccess) ? setAccess : throw new InvalidOperationException(),
+                        IsRequired = bool.Parse(propParts[2]),
+                    };
+                }
+
+                return new NonEnumTypeSpec
+                {
+                    TargetType = null!,
+                    SourceType = null!,
+                    Properties = typeProperties.ToImmutableEquatableArray(),
+                    Constructors = ImmutableEquatableArray<ImmutableEquatableArray<ConstructorArgumentSpec>>.Empty,
+                };
+            }
+            else if (typeValue == "enum")
+            {
+                return new EnumTypeSpec
+                {
+                    TargetType = null!,
+                    SourceType = null!,
+                    Members = ImmutableEquatableArray<MemberSpec>.Empty,
+                };
+            }
+            else
+            {
+                throw new InvalidOperationException($"Invalid type: {typeValue}");
+            }
+        }
     }
 
     internal sealed record NonEnumTypeSpec : PartialTypeSpec
@@ -531,7 +635,7 @@ namespace TypeFest.Net.SourceGenerator
                     // Add members
                     foreach (var property in Properties)
                     {
-                        writer.WriteLine($"/// <inheritdoc cref=\"{SourceType.GlobalName()}.{property.Name}\" />");
+                        writer.WriteLine($"/// <inheritdoc cref=\"{SourceType.GlobalName()}.{property.Name}\"/>");
                         writer.WriteLine($"public{(property.IsRequired ? " required " : " ")}{property.Type} {property.Name} {{ get;{GetSetString(property.SetAccess)}}}");
                     }
                 }
@@ -543,6 +647,57 @@ namespace TypeFest.Net.SourceGenerator
                 writer.Indent--;
                 writer.WriteLine("}");
             }
+        }
+
+        public override TypeDeclarationSyntax Build(TypeDeclarationSyntax existing, TypeSyntax sourceType)
+        {
+            var properties = Properties.Select(p =>
+            {
+                var accessors = List([AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken))]);
+                if (p.SetAccess == SetAccess.Init)
+                {
+                    accessors = accessors.Add(AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
+                }
+                else if (p.SetAccess == SetAccess.Set)
+                {
+                    accessors = accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
+                }
+
+                var modifiers = TokenList(Token(SyntaxKind.PublicKeyword));
+
+                if (p.IsRequired)
+                {
+                    modifiers = modifiers.Add(Token(SyntaxKind.RequiredKeyword));
+                }
+
+                return PropertyDeclaration(
+                    attributeLists: List<AttributeListSyntax>(),
+                    modifiers: modifiers,
+                    type: ParseTypeName(p.Type),
+                    explicitInterfaceSpecifier: null,
+                    identifier: Identifier(p.Name),
+                    accessorList: AccessorList(accessors)
+                ).WithLeadingTrivia(
+                    TriviaList(
+                        Trivia(DocumentationComment(
+                            XmlEmptyElement(
+                                XmlName("inheritdoc"),
+                                List<XmlAttributeSyntax>([
+                                    XmlCrefAttribute(QualifiedCref(sourceType, NameMemberCref(ParseTypeName(p.Name))))
+                                ])
+                            )
+                        )),
+                        LineFeed
+                    )
+                );
+            });
+
+            return existing
+                .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken))
+                .WithMembers(
+                    List<MemberDeclarationSyntax>(properties)
+                )
+                .WithCloseBraceToken(Token(SyntaxKind.CloseBraceToken));
         }
 
         private string GetSetString(SetAccess setAccess)
@@ -562,6 +717,11 @@ namespace TypeFest.Net.SourceGenerator
         public required ImmutableEquatableArray<MemberSpec> Members { get; init; }
         public override bool HasChanges => Members.Count > 0;
 
+        public override TypeDeclarationSyntax Build(TypeDeclarationSyntax existing, TypeSyntax sourceType)
+        {
+            throw new NotImplementedException();
+        }
+
         public override IEnumerable<string> GetMemberNames()
         {
             return Members.Select(m => m.Name);
@@ -576,7 +736,7 @@ namespace TypeFest.Net.SourceGenerator
             // Add members
             foreach (var member in Members)
             {
-                writer.WriteLine($"/// <inheritdoc cref=\"{SourceType.GlobalName()}.{member.Name}\" />");
+                writer.WriteLine($"/// <inheritdoc cref=\"{SourceType.GlobalName()}.{member.Name}\"/>");
                 writer.Write($"{member.Name}");
                 if (member.Value != null)
                 {

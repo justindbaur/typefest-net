@@ -27,7 +27,7 @@ public class OmitTests : TestBase
             {
                 partial class EditPerson
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Person.Id" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Id"/>
                     public Guid Id { get; set; }
                 }
             }
@@ -62,7 +62,7 @@ public class OmitTests : TestBase
             {
                 partial class EditPerson
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Person.Id" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Id"/>
                     public Guid Id { get; set; }
                 }
             }
@@ -96,7 +96,7 @@ public class OmitTests : TestBase
             {
                 partial class EditPerson
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Person.Id" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Id"/>
                     public Guid Id { get; set; }
                 }
             }
@@ -128,7 +128,7 @@ public class OmitTests : TestBase
             {
                 partial record EditPerson
                 {
-                    /// <inheritdoc cref="global::TestNamespace.Person.Id" />
+                    /// <inheritdoc cref="global::TestNamespace.Person.Id"/>
                     public Guid Id { get; set; }
                 }
             }
@@ -168,7 +168,7 @@ public class OmitTests : TestBase
                 {
                     partial class OtherPerson
                     {
-                        /// <inheritdoc cref="global::Test.NestedNamespace.AnotherOuterClass.Person.Id" />
+                        /// <inheritdoc cref="global::Test.NestedNamespace.AnotherOuterClass.Person.Id"/>
                         public Guid Id { get; set; }
                     }
                 }
@@ -201,7 +201,7 @@ public class OmitTests : TestBase
             {
                 partial class MyOptions
                 {
-                    /// <inheritdoc cref="global::Test.Options.ConnectionString" />
+                    /// <inheritdoc cref="global::Test.Options.ConnectionString"/>
                     public string? ConnectionString { get; set; }
                 }
             }

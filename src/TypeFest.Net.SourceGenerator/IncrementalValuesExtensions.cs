@@ -1,5 +1,5 @@
 using Microsoft.CodeAnalysis;
-using TypeFest.Net.SourceGenerator.Utilities;
+using TypeFest.Net.Analyzer.Shared;
 
 namespace TypeFest.Net.SourceGenerator;
 

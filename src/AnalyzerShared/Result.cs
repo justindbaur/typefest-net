@@ -1,3 +1,3 @@
-namespace TypeFest.Net.SourceGenerator.Utilities;
+namespace TypeFest.Net.Analyzer.Shared;
 
 internal sealed record Result<T>(T Item, ImmutableEquatableArray<DiagnosticInfo> Errors);
