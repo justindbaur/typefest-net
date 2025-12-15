@@ -652,14 +652,21 @@ namespace TypeFest.Net.Analyzer.Shared
         {
             var properties = Properties.Select(p =>
             {
-                var accessors = List([AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken))]);
+                var accessors = List([
+                    AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                        .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
+                ]);
                 if (p.SetAccess == SetAccess.Init)
                 {
-                    accessors = accessors.Add(AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
+                    accessors = accessors.Add(AccessorDeclaration(SyntaxKind.InitAccessorDeclaration)
+                        .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
+                    );
                 }
                 else if (p.SetAccess == SetAccess.Set)
                 {
-                    accessors = accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(Token(SyntaxKind.SemicolonToken)));
+                    accessors = accessors.Add(AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                        .WithSemicolonToken(Token(SyntaxKind.SemicolonToken))
+                    );
                 }
 
                 var modifiers = TokenList(Token(SyntaxKind.PublicKeyword));
@@ -689,13 +696,11 @@ namespace TypeFest.Net.Analyzer.Shared
                         LineFeed
                     )
                 );
-            });
+            }).ToArray();
 
             return existing
                 .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken))
-                .WithMembers(
-                    List<MemberDeclarationSyntax>(properties)
-                )
+                .AddMembers(properties)
                 .WithCloseBraceToken(Token(SyntaxKind.CloseBraceToken));
         }
 

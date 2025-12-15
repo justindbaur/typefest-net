@@ -34,6 +34,43 @@ public class UpdateTypeCodeFixProviderTests : CSharpCodeFixTest<TypeFestAnalyzer
         );
     }
 
+    [Fact]
+    public async Task ExistingMembers_Works()
+    {
+        await RunAsync(
+            """
+            using TypeFest.Net;
+
+            namespace Test;
+
+            [{|TF0006:Pick<Person>("Name")|}]
+            public class MyThing
+            {
+                public string MyAction()
+                {
+                    return "Hello!";
+                }
+            }
+            """,
+            """
+            using TypeFest.Net;
+
+            namespace Test;
+
+            [Pick<Person>("Name")]
+            public class MyThing
+            {
+                public string MyAction()
+                {
+                    return "Hello!";
+                }
+                /// <inheritdoc cref="Person.Name"/>
+                public string Name { get; set; }
+            }
+            """
+        );
+    }
+
     private async Task RunAsync([StringSyntax("C#-test")] string testCode, [StringSyntax("C#-test")] string fixedCode)
     {
         TestCode = testCode;
