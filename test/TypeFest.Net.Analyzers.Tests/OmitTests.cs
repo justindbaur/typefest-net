@@ -1,4 +1,4 @@
-namespace TypeFest.Net.SourceGenerator.SpecTests;
+namespace TypeFest.Net.Analyzers.Tests;
 
 public class OmitTests : TestBase
 {

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using TypeFest.Net.Analyzer.Shared;
 
-namespace TypeFest.Net.SourceGenerator
+namespace TypeFest.Net.Analyzers
 {
     [Generator]
     public sealed class TypeFestGenerator : IIncrementalGenerator

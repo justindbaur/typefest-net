@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
-namespace TypeFest.Net.SourceGenerator.SpecTests;
+namespace TypeFest.Net.Analyzers.Tests;
 
 public abstract class TestBase
 {

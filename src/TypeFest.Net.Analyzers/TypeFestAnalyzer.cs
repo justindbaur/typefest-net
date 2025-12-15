@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using TypeFest.Net.Analyzer.Shared;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.Analyzers;
 
 internal struct AttributeInfo
 {

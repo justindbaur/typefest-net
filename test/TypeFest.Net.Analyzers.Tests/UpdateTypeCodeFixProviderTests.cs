@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 using TypeFest.Net.CodeFixers;
 
-namespace TypeFest.Net.SourceGenerator.SpecTests;
+namespace TypeFest.Net.Analyzers.Tests;
 
 public class UpdateTypeCodeFixProviderTests : CSharpCodeFixTest<TypeFestAnalyzer, UpdateTypeFixProvider, DefaultVerifier>
 {

@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace TypeFest.Net.SourceGenerator.SpecTests;
+namespace TypeFest.Net.Analyzers.Tests;
 
 public class PickTests : TestBase
 {

@@ -1,7 +1,7 @@
 using Microsoft.CodeAnalysis;
 using TypeFest.Net.Analyzer.Shared;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.Analyzers;
 
 public static class IncrementalValuesExtensions
 {

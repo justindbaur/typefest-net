@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using TypeFest.Net.Analyzer.Shared;
 
-namespace TypeFest.Net.SourceGenerator
+namespace TypeFest.Net.Analyzers
 {
     internal sealed record MapInfo
     {

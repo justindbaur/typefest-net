@@ -9,7 +9,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using TypeFest.Net.Analyzer.Common;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace TypeFest.Net.Analyzer.Shared

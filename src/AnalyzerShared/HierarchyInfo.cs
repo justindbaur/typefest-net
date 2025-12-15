@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using TypeFest.Net.Analyzer.Common;
 using static Microsoft.CodeAnalysis.SymbolDisplayTypeQualificationStyle;
 
 namespace TypeFest.Net.Analyzer.Shared;

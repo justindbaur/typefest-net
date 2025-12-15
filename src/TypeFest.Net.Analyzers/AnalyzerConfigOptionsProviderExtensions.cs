@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace TypeFest.Net.SourceGenerator;
+namespace TypeFest.Net.Analyzers;
 
 internal static class AnalyzerConfigOptionsProviderExtensions
 {

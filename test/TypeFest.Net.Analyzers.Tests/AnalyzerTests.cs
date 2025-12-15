@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
 
-namespace TypeFest.Net.SourceGenerator.SpecTests;
+namespace TypeFest.Net.Analyzers.Tests;
 
 public class AnalyzerTests : CSharpAnalyzerTest<TypeFestAnalyzer, DefaultVerifier>
 {

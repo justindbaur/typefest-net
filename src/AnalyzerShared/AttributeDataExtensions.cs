@@ -1,6 +1,6 @@
 using Microsoft.CodeAnalysis;
 
-namespace TypeFest.Net.Analyzer.Common;
+namespace TypeFest.Net.Analyzer.Shared;
 
 internal static class AttributeDataExtensions
 {

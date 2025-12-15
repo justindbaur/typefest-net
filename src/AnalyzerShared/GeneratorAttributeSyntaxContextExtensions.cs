@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace TypeFest.Net.Analyzer.Common;
+namespace TypeFest.Net.Analyzer.Shared;
 
 public static class GeneratorAttributeSyntaxContextExtensions
 {
