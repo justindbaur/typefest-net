@@ -14,11 +14,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TypeFest.Net.SourceGenerator\TypeFest.Net.SourceGenerator.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\TypeFest.Net.Analyzers\TypeFest.Net.Analyzers.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\TypeFest.Net.SourceGenerator\bin\$(Configuration)\netstandard2.0\TypeFest.Net.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="..\TypeFest.Net.Analyzers\bin\$(Configuration)\netstandard2.0\TypeFest.Net.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 

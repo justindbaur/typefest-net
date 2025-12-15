@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TypeFest.Net\TypeFest.Net.csproj" />
-    <ProjectReference Include="..\..\src\TypeFest.Net.SourceGenerator\TypeFest.Net.SourceGenerator.csproj" />
+    <ProjectReference Include="..\..\src\TypeFest.Net.Analyzers\TypeFest.Net.Analyzers.csproj" />
     <ProjectReference Include="..\..\src\TypeFest.Net.CodeFixers\TypeFest.Net.CodeFixers.csproj" />
   </ItemGroup>
 
