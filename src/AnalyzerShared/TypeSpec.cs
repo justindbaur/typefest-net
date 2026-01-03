@@ -494,7 +494,7 @@ namespace TypeFest.Net.Analyzer.Shared
             }
         }
 
-        public abstract TypeDeclarationSyntax Build(TypeDeclarationSyntax existing, TypeSyntax sourceType);
+        public abstract BaseTypeDeclarationSyntax Build(BaseTypeDeclarationSyntax existing, TypeSyntax sourceType);
 
         public void Serialize(ImmutableDictionary<string, string?>.Builder destination)
         {
@@ -508,11 +508,24 @@ namespace TypeFest.Net.Analyzer.Shared
                     destination.Add($"p:{prop.Name}", $"{prop.Type} {prop.SetAccess} {prop.IsRequired}");
                 }
 
-                // TODO: Constructors
+                destination.Add(
+                    "constructors",
+                    string.Join(
+                        ",",
+                        nonEnum.Constructors
+                            .Select(args => string.Join("|",
+                                args.Select(a => a.Serialize())))
+                    )
+                );
             }
             else if (this is EnumTypeSpec enumType)
             {
                 destination.Add("type", "enum");
+                destination.Add("members", string.Join(",", enumType.Members.Select(m => m.Name)));
+                foreach (var member in enumType.Members)
+                {
+                    destination.Add($"m:{member.Name}", member.Value);
+                }
             }
             else
             {
@@ -552,7 +565,7 @@ namespace TypeFest.Net.Analyzer.Shared
                         throw new InvalidOperationException("null prop value");
                     }
 
-                    var propParts = propValue.Split(' ');
+                    var propParts = propValue.Split([' '], StringSplitOptions.RemoveEmptyEntries);
 
                     if (propParts.Length != 3)
                     {
@@ -568,21 +581,63 @@ namespace TypeFest.Net.Analyzer.Shared
                     };
                 }
 
+                var constructors = properties["constructors"];
+
+                if (constructors is null)
+                {
+                    throw new FormatException();
+                }
+
+                var splitConstructors = constructors.Split([','], StringSplitOptions.RemoveEmptyEntries);
+
+                var argumentsArrays = new ImmutableEquatableArray<ConstructorArgumentSpec>[splitConstructors.Length];
+
+                for (var i = 0; i < argumentsArrays.Length; i++)
+                {
+                    var argsSplit = splitConstructors[i].Split(['|'], StringSplitOptions.RemoveEmptyEntries);
+
+                    argumentsArrays[i] = argsSplit
+                        .Select(ConstructorArgumentSpec.Deserialize)
+                        .ToImmutableEquatableArray();
+                }
+
                 return new NonEnumTypeSpec
                 {
                     TargetType = null!,
                     SourceType = null!,
                     Properties = typeProperties.ToImmutableEquatableArray(),
-                    Constructors = ImmutableEquatableArray<ImmutableEquatableArray<ConstructorArgumentSpec>>.Empty,
+                    Constructors = argumentsArrays.ToImmutableEquatableArray(),
                 };
             }
             else if (typeValue == "enum")
             {
+                var membersValue = properties["members"];
+
+                if (membersValue == null)
+                {
+                    throw new InvalidOperationException("No members property");
+                }
+
+                var memberNames = membersValue.Split([','], StringSplitOptions.RemoveEmptyEntries);
+
+                var members = new MemberSpec[memberNames.Length];
+
+                for (var i = 0; i < members.Length; i++)
+                {
+                    var name = memberNames[i];
+                    members[i] = new MemberSpec
+                    {
+                        Name = name,
+                        Value = properties.GetValueOrDefault($"m:{name}", null),
+                    };
+                }
+
                 return new EnumTypeSpec
                 {
+                    // These aren't needed for code fix mode
                     TargetType = null!,
                     SourceType = null!,
-                    Members = ImmutableEquatableArray<MemberSpec>.Empty,
+                    Members = members.ToImmutableEquatableArray(),
                 };
             }
             else
@@ -648,8 +703,50 @@ namespace TypeFest.Net.Analyzer.Shared
             }
         }
 
-        public override TypeDeclarationSyntax Build(TypeDeclarationSyntax existing, TypeSyntax sourceType)
+        public override BaseTypeDeclarationSyntax Build(BaseTypeDeclarationSyntax existing, TypeSyntax sourceType)
         {
+            var existingClass = (TypeDeclarationSyntax)existing;
+
+            var constructors = Constructors.Select(args =>
+            {
+                var parameters = new ParameterSyntax[args.Count];
+                var statements = new StatementSyntax[args.Count];
+
+                for (var i = 0; i < args.Count; i++)
+                {
+                    var arg = args[i];
+                    parameters[i] = Parameter(
+                        attributeLists: List<AttributeListSyntax>(),
+                        modifiers: TokenList(),
+                        type: ParseTypeName(arg.Type),
+                        identifier: Identifier(arg.ArgumentName),
+                        null
+                    );
+
+                    ExpressionSyntax left = arg.NeedsQualification
+                        ? MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, ThisExpression(), Token(SyntaxKind.DotToken), IdentifierName(arg.PropertyName))
+                        : IdentifierName(arg.PropertyName);
+
+                    statements[i] = ExpressionStatement(
+                        AssignmentExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            left,
+                            Token(SyntaxKind.EqualsToken),
+                            IdentifierName(arg.ArgumentName)
+                        )
+                    );
+                }
+
+                return ConstructorDeclaration(
+                    attributeLists: List<AttributeListSyntax>(),
+                    modifiers: TokenList(Token(SyntaxKind.PublicKeyword)),
+                    identifier: existing.Identifier,
+                    ParameterList(SeparatedList(parameters)),
+                    null,
+                    Block(statements)
+                );
+            });
+
             var properties = Properties.Select(p =>
             {
                 var accessors = List([
@@ -698,9 +795,9 @@ namespace TypeFest.Net.Analyzer.Shared
                 );
             }).ToArray();
 
-            return existing
+            return existingClass
                 .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken))
-                .AddMembers(properties)
+                .AddMembers([..constructors, ..properties])
                 .WithCloseBraceToken(Token(SyntaxKind.CloseBraceToken));
         }
 
@@ -721,9 +818,39 @@ namespace TypeFest.Net.Analyzer.Shared
         public required ImmutableEquatableArray<MemberSpec> Members { get; init; }
         public override bool HasChanges => Members.Count > 0;
 
-        public override TypeDeclarationSyntax Build(TypeDeclarationSyntax existing, TypeSyntax sourceType)
+        public override BaseTypeDeclarationSyntax Build(BaseTypeDeclarationSyntax existing, TypeSyntax sourceType)
         {
-            throw new NotImplementedException();
+            var existingEnum = (EnumDeclarationSyntax)existing;
+
+            var fields = Members.Select(m =>
+            {
+                EqualsValueClauseSyntax? equalsValueClause = null;
+
+                if (m.Value != null)
+                {
+                    equalsValueClause = EqualsValueClause(ParseExpression(m.Value));
+                }
+
+                return EnumMemberDeclaration(
+                    List<AttributeListSyntax>(),
+                    Identifier(m.Name),
+                    equalsValueClause
+                );
+            });
+
+            var newFields = SeparatedList(fields, fields.Select(f => Token(SyntaxKind.CommaToken))).GetWithSeparators();
+
+            IEnumerable<SyntaxNodeOrToken> allMembers = [..existingEnum.Members.GetWithSeparators(), ..newFields];
+
+            foreach (var m in allMembers)
+            {
+                Debug.WriteLine(m);
+            }
+
+            return existingEnum
+                .WithOpenBraceToken(Token(SyntaxKind.OpenBraceToken))
+                .WithMembers(SeparatedList<EnumMemberDeclarationSyntax>(allMembers))
+                .WithCloseBraceToken(Token(SyntaxKind.CloseBraceToken));
         }
 
         public override IEnumerable<string> GetMemberNames()
@@ -783,6 +910,27 @@ namespace TypeFest.Net.Analyzer.Shared
         public bool NeedsQualification
         {
             get => ArgumentName == PropertyName;
+        }
+
+        public string Serialize()
+        {
+            return $"{Type} {ArgumentName} {PropertyName}";
+        }
+
+        public static ConstructorArgumentSpec Deserialize(string value)
+        {
+            var parts = value.Split(' ');
+            if (parts.Length != 3)
+            {
+                throw new FormatException("3 parts are expected in a serialized constructor argument");
+            }
+
+            return new ConstructorArgumentSpec
+            {
+                Type = parts[0],
+                ArgumentName = parts[1],
+                PropertyName = parts[2],
+            };
         }
     }
 

@@ -6,40 +6,26 @@ namespace TypeFest.Net.Analyzers.Tests;
 
 public class AnalyzerTests : CSharpAnalyzerTest<TypeFestAnalyzer, DefaultVerifier>
 {
-    // TODO: Move these to CodeFixer tests
-    // [Fact]
-    // public async Task OutOfSyncType_CausesDiagnostic()
-    // {
-    //     await RunAsync(
-    //         """
-    //         using TypeFest.Net;
+    [Fact]
+    public async Task UpToDateType_CausesNoDiagnostics()
+    {
+        TestState.SetGenerateMode(false);
 
-    //         namespace Test;
+        await RunAsync(
+            """
+            using TypeFest.Net;
 
-    //         [{|TF0006:Omit<Person>("Name")|}]
-    //         public partial class OtherPerson;
-    //         """
-    //     );
-    // }
+            namespace Test;
 
-    // [Fact]
-    // public async Task UpToDateType_CausesNoDiagnostics()
-    // {
-    //     await RunAsync(
-    //         """
-    //         using TypeFest.Net;
-
-    //         namespace Test;
-
-    //         [Pick<Person>("Age")]
-    //         public partial class OtherPerson
-    //         {
-    //             /// <inheritdoc cref="global::Test.Person" />
-    //             public int Age { get; }
-    //         }
-    //         """
-    //     );
-    // }
+            [Pick<Person>("Age")]
+            public partial class OtherPerson
+            {
+                /// <inheritdoc cref="global::Test.Person" />
+                public int Age { get; }
+            }
+            """
+        );
+    }
 
     [Theory]
     [InlineData("class", "Omit<Color>(\"Red\")")]
@@ -122,12 +108,6 @@ public class AnalyzerTests : CSharpAnalyzerTest<TypeFestAnalyzer, DefaultVerifie
     private async Task RunAsync([StringSyntax("C#-test")] string source)
     {
         TestCode = source;
-
-        // TODO: Do this for the code fixer tests
-        // TestState.AnalyzerConfigFiles.Add(("/.editorconfig", """
-        // is_global = true
-        // build_property.TypeFestNet_GenerateMode = CodeFix
-        // """));
 
         TestState.AdditionalReferences.Add(typeof(PickAttribute<>).Assembly);
         TestState.ReferenceAssemblies = ReferenceAssemblies.Net.Net80;

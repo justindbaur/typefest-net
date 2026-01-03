@@ -19,7 +19,13 @@ internal struct AttributeInfo
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class TypeFestAnalyzer : DiagnosticAnalyzer
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Diagnostics.NullArgument, Diagnostics.DuplicateArgument, Diagnostics.InvalidPropertyName, Diagnostics.InvalidTypeKind, Diagnostics.PartialTypeOutOfSync);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+        Diagnostics.NullArgument,
+        Diagnostics.DuplicateArgument,
+        Diagnostics.InvalidPropertyName,
+        Diagnostics.InvalidTypeKind,
+        Diagnostics.PartialTypeOutOfSync
+    );
 
     public override void Initialize(AnalysisContext context)
     {
